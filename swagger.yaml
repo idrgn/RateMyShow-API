@@ -1,0 +1,662 @@
+openapi: 3.0.0
+servers:
+  - description: Local
+    url: localhost:3000
+info:
+  version: "1.0.0"
+  title: RateMyShow API
+  description: API para el proyecto RateMyShow
+paths:
+  /users:
+    post:
+      tags:
+        - Users
+      description: registrar a un usuario
+      parameters:
+        - in: query
+          name: name
+          description: nombre de la persona
+          schema:
+            type: string
+            format: string
+        - in: query
+          name: surname
+          description: apellidos de la persona
+          schema:
+            type: string
+            format: string
+        - in: query
+          name: username
+          description: nombre de usuario
+          schema:
+            type: string
+            format: string
+        - in: query
+          name: email
+          description: email de la persona
+          schema:
+            type: string
+            format: string
+        - in: query
+          name: phone
+          description: telefono de la persona
+          schema:
+            type: string
+            format: string
+        - in: query
+          name: birthdate
+          description: Fecha de nacimiento de la persona
+          schema:
+            type: string
+            format: string
+        - in: query
+          name: password
+          description: contraseña de usuario
+          schema:
+            type: string
+            format: string
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "409":
+          description: Conflict
+  /users/{username}:
+    get:
+      tags:
+        - Users
+      description: registrar a un usuario
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: Not Found
+  /users/{username}/followers:
+    get:
+      tags:
+        - Users
+      description: obtiene la lista de seguidores de un usuario
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimpleUserList"
+        "404":
+          description: Not Found
+  /users/{username}/following:
+    get:
+      tags:
+        - Users
+      description: obtiene la lista de seguidos de un usuario
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimpleUserList"
+        "404":
+          description: Not Found
+
+  /users/{username}/ratings:
+    get:
+      tags:
+        - Users
+      description: obtiene la lista de puntuaciones de un usuario
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieRatingList"
+        "404":
+          description: Not Found
+  /users/{username}/follow:
+    put:
+      tags:
+        - Users
+      description: sigue a un usuario
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+    delete:
+      tags:
+        - Users
+      description: deja de seguir a un usuario
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+  /sessions:
+    post:
+      tags:
+        - Sessions
+      description: crea una nueva sesion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+    delete:
+      tags:
+        - Sessions
+      description: cerrar sesion
+      parameters:
+        - in: header
+          name: SessionToken
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+  /titles:
+    get:
+      tags:
+        - Titles
+      description: obtiene una lista de títulos en función de una búsqueda
+      parameters:
+        - name: query
+          in: path
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedMovieInfoList"
+        "404":
+          description: Not Found
+  /titles/{id}:
+    get:
+      tags:
+        - Titles
+      description: obtiene informacion de un título
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedMovieInfo"
+        "404":
+          description: Not Found
+  /titles/{id}/rating:
+    put:
+      tags:
+        - Titles
+      description: añade puntuación a un título
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - in: header
+          name: SessionToken
+          required: true
+          schema:
+            type: string
+            format: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RatingRequest"
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unautorized
+        "404":
+          description: Not Found
+  /titles/{id}/pending:
+    put:
+      tags:
+        - Titles
+      description: añade un título a lista de títulos pendientes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - in: header
+          name: SessionToken
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unautorized
+        "404":
+          description: Not Found
+    delete:
+      tags:
+        - Titles
+      description: elimina un título pendiente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - in: header
+          name: SessionToken
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unautorized
+        "404":
+          description: Not Found
+  /titles/{id}/favorite:
+    put:
+      tags:
+        - Titles
+      description: añade un título a favoritos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - in: header
+          name: SessionToken
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unautorized
+        "404":
+          description: Not Found
+    delete:
+      tags:
+        - Titles
+      description: elimina un título de favoritos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - in: header
+          name: SessionToken
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unautorized
+        "404":
+          description: Not Found
+  /feed:
+    get:
+      tags:
+        - Other
+      description: crea una nueva sesion
+      parameters:
+        - in: header
+          name: SessionToken
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedMovieInfoList"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+  /bestRated:
+    get:
+      tags:
+        - Other
+      description: crea una nueva sesion
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedMovieInfoList"
+  /recommendations:
+    get:
+      tags:
+        - Other
+      description: crea una nueva sesion
+      parameters:
+        - in: header
+          name: SessionToken
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedMovieInfoList"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+  /latest:
+    get:
+      tags:
+        - Other
+      description: crea una nueva sesion
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedMovieInfoList"
+  /favorites:
+    get:
+      tags:
+        - Other
+      description: crea una nueva sesion
+      parameters:
+        - in: header
+          name: SessionToken
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedMovieInfoList"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+
+  /pending:
+    get:
+      tags:
+        - Other
+      description: crea una nueva sesion
+      parameters:
+        - in: header
+          name: SessionToken
+          required: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedMovieInfoList"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+components:
+  schemas:
+    SimpleUserList:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimpleUser"
+    SimpleUser:
+      type: object
+      properties:
+        username:
+          type: string
+          format: string
+        avatarId:
+          type: integer
+          format: int32
+    User:
+      type: object
+      properties:
+        favoritos:
+          type: array
+          items:
+            $ref: "#/components/schemas/Movie"
+        pendientes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Movie"
+        username:
+          type: string
+          format: string
+        name:
+          type: string
+          format: string
+        surname:
+          type: string
+          format: string
+        email:
+          type: string
+          format: string
+        phone:
+          type: string
+          format: string
+        numFollowers:
+          type: integer
+          format: int64
+        numFollowing:
+          type: integer
+          format: int64
+        avatarId:
+          type: integer
+          format: int64
+    Movie:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+          format: string
+        year:
+          type: integer
+          format: int64
+        dateAdded:
+          type: integer
+          format: date-time
+    MovieRatingList:
+      type: object
+      properties:
+        movies:
+          type: array
+          items:
+            $ref: "#/components/schemas/MovieRating"
+    MovieRating:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+          format: string
+        year:
+          type: integer
+          format: int64
+        dateAdded:
+          type: integer
+          format: date-time
+        rating:
+          type: number
+          format: float32
+    SessionRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+          format: string
+        username:
+          type: string
+          format: string
+        email:
+          type: string
+          format: string
+        password:
+          type: string
+          format: string
+    SessionResponse:
+      type: object
+      properties:
+        sessionToken:
+          type: string
+          format: string
+    DetailedMovieInfoList:
+      type: object
+      properties:
+        movies:
+          type: array
+          items:
+            $ref: "#/components/schemas/DetailedMovieInfo"
+    DetailedMovieInfo:
+      type: object
+      properties:
+        title:
+          type: string
+          format: string
+        genres:
+          type: string
+          format: string
+        types:
+          type: string
+          format: string
+        year:
+          type: integer
+          format: int32
+        averageRating:
+          type: number
+          format: number
+        synopsis:
+          type: string
+          format: string
+    RatingRequest:
+      type: object
+      properties:
+        rating:
+          type: number
+          format: number
