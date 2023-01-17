@@ -241,6 +241,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DetailedMovieInfoList"
+        "201":
+          description: No hay resultados para esta búsqueda.
   /titles/{id}:
     get:
       tags:
