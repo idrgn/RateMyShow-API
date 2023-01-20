@@ -1,3 +1,5 @@
+from webserviceapp import views
+
 """RateMyShow URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
@@ -18,4 +20,5 @@ from django.urls import path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-]
+    path('titles/<str:title_id>', views.get_title_by_id),
+    ]
