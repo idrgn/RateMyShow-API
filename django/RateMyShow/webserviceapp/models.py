@@ -17,8 +17,8 @@ class Avatars(models.Model):
 
 
 class Followers(models.Model):
-    followerid = models.ForeignKey('Users', models.DO_NOTHING, db_column='followerId')  # Field name made lowercase.
-    followedid = models.ForeignKey('Users', models.DO_NOTHING, db_column='followedId')  # Field name made lowercase.
+    followerid = models.ForeignKey('Users', models.DO_NOTHING, db_column='followerId', related_name='follower')  # Field name made lowercase.
+    followedid = models.ForeignKey('Users', models.DO_NOTHING, db_column='followedId', related_name='followed')  # Field name made lowercase.
 
     class Meta:
         managed = False
