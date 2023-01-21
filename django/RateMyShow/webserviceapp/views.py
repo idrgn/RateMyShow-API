@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from bs4 import BeautifulSoup
+from random import choice
 
 from .models import Titles
 
@@ -73,3 +74,21 @@ def get_title_by_id(r, title_id):
 
     # Se envía la respuesta con status 200 (OK)
     return JsonResponse(response, json_dumps_params={"ensure_ascii": False}, status=200)
+
+
+def get_random_title(r):
+    # Se obtienen todas las claves primarias de la tabla Titles
+    pks = Titles.objects.values_list("pk", flat=True)
+
+    # Se selecciona una de las claves
+    random_pk = choice(pks)
+
+    # Se obtiene el objeto asociado a esa tabla
+    random_item = Titles.objects.get(pk=random_pk)
+
+    # Devuelve los datos
+    return JsonResponse(
+        get_title_data(random_item.id),
+        json_dumps_params={"ensure_ascii": False},
+        status=200,
+    )

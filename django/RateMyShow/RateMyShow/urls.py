@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import path
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('titles/<str:title_id>', views.get_title_by_id),
-    ]
+    path("admin/", admin.site.urls),
+    path("titles/random", views.get_random_title),
+    path("titles/<str:title_id>", views.get_title_by_id),
+]
