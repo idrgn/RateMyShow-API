@@ -25,7 +25,11 @@ SECRET_KEY = "django-insecure-0lp8-13ki^tgsr%7le_9vk-ajr2v1!4)&c0pck@d$aimg5l78o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["ec2-35-181-48-198.eu-west-3.compute.amazonaws.com", "localhost"]
+ALLOWED_HOSTS = [
+    "ec2-35-181-48-198.eu-west-3.compute.amazonaws.com",
+    "localhost",
+    "api.ratemyshow.lekiam.net",
+]
 
 
 # Application definition
