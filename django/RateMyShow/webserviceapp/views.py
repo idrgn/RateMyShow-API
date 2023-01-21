@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from bs4 import BeautifulSoup
@@ -7,9 +8,13 @@ from .models import Titles
 import requests
 
 
-def get_title_by_id(r, title_id):
-    # Obtiene el título
-    title = Titles.objects.get(id=title_id)
+def get_title_data(title_id):
+    try:
+        # Obtiene el título
+        title = Titles.objects.get(id=title_id)
+    except ObjectDoesNotExist:
+        # Si genera un error al obtener el título, revuelve none
+        return None
 
     # Si los datos adicionales no existen en la BBDD obtienen de la web
     if title.cover == None or title.description == None:
@@ -52,10 +57,19 @@ def get_title_by_id(r, title_id):
             pass
 
     # Se transforma el modelo a un diccionario
-    response = model_to_dict(title)
+    return model_to_dict(title)
 
-    # Se envía la respuesta
-    return JsonResponse(
-        response,
-        json_dumps_params={"ensure_ascii": False},
-    )
+
+def get_title_by_id(r, title_id):
+    # Obtiene el título
+    try:
+        response = get_title_data(title_id)
+    except Exception:
+        response = None
+
+    # Si la respuesta es None, envía un status 404 (Not found)
+    if response == None:
+        return JsonResponse({"message": "Not found"}, status=404)
+
+    # Se envía la respuesta con status 200 (OK)
+    return JsonResponse(response, json_dumps_params={"ensure_ascii": False}, status=200)
