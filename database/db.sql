@@ -181,7 +181,3 @@ INTO TABLE Participants
 FIELDS TERMINATED BY '\t'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
-
-create user 'django'@'localhost' identified by '1234';
-grant usage on *.* to 'django'@'localhost';
-grant all privileges on RateMyShow.* to 'django'@'localhost';
