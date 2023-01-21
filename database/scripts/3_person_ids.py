@@ -12,4 +12,4 @@ with open("filtered/Participants.tsv", encoding="utf-8") as tsvfile:
         data.append(personId + "\n")
 
 with open("filtered/PersonIDs.txt", "w") as f:
-    f.writelines(data)
+    f.writelines(set(data))
