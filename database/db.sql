@@ -34,6 +34,8 @@ CREATE TABLE `Titles` (
 	`endYear` INT NOT NULL,
 	`runtimeMinutes` INT NOT NULL,
 	`language` VARCHAR(255) NOT NULL,
+	`cover` TEXT,
+	`description` TEXT,
 	PRIMARY KEY (`id`)
 );
 
@@ -179,3 +181,7 @@ INTO TABLE Participants
 FIELDS TERMINATED BY '\t'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
+
+create user 'django'@'localhost' identified by '1234';
+grant usage on *.* to 'django'@'localhost';
+grant all privileges on RateMyShow.* to 'django'@'localhost';
