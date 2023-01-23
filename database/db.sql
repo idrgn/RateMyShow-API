@@ -124,9 +124,9 @@ CREATE TABLE `Pending` (
 	PRIMARY KEY (`id`)
 );
 
---------------------
--- Claves foráneas--
---------------------
+---------------------
+-- Claves foráneas --
+---------------------
 
 ALTER TABLE `Users` ADD CONSTRAINT `Users_fk0` FOREIGN KEY (`avatarId`) REFERENCES `Avatars`(`id`);
 
@@ -205,3 +205,10 @@ INTO TABLE Participants
 FIELDS TERMINATED BY '\t'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
+
+
+------------------------------------
+-- Se añade el avatar por defecto --
+------------------------------------
+
+insert into Avatars values(0, "default");
