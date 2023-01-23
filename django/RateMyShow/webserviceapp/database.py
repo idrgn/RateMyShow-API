@@ -45,7 +45,7 @@ def get_title(title_id):
         participant_list.append(
             {
                 "name": participant.personid.name.rstrip(),
-                "category": participant.category.category.rstrip(),
+                "job": participant.category.category.rstrip(),
             }
         )
 
@@ -95,7 +95,7 @@ def get_title(title_id):
     # Se añaden los campos extra
     title_dict["genres"] = genre_list
     title_dict["crew"] = participant_list
-    title_dict["rating"] = rating
+    title_dict["rating"] = rating["rating__avg"]
     title_dict["language"] = title_dict["language"].rstrip()
 
     # Se devuelve el diccionario
