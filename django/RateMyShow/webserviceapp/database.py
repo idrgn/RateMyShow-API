@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 from django.utils.crypto import get_random_string
 
-from .models import Titles, Tokens
+from .models import Titles, Tokens, Genres, Genretypes
 
 
 """Funciones de BBDD de RateMyShow
@@ -24,6 +24,14 @@ def get_title(title_id):
     except ObjectDoesNotExist:
         # Si genera un error al obtener el título, revuelve none
         return None
+
+    # Se obtienen los géneros
+    genres = Genres.objects.filter(titleid=title_id)
+
+    # Se añaden a una lista
+    genre_list = []
+    for genre in genres:
+        genre_list.append(genre.genreid.genre)
 
     # Si los datos adicionales no existen en la BBDD obtienen de la web
     if title.cover == None or title.description == None:
@@ -66,7 +74,13 @@ def get_title(title_id):
             pass
 
     # Se transforma el modelo a un diccionario
-    return model_to_dict(title)
+    title_dict = model_to_dict(title)
+
+    # Se añaden los campos extra
+    title_dict["genres"] = genre_list
+
+    # Se devuelve el diccionario
+    return title_dict
 
 
 def get_new_token():
