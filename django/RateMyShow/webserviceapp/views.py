@@ -65,6 +65,13 @@ def get_title_data(title_id):
     return model_to_dict(title)
 
 
+def get_new_token():
+    token_string = get_random_string(length=32)
+    while Tokens.objects.filter(token=token_string).exists():
+        token_string = get_random_string(length=32)
+    return token_string
+
+
 def get_title_by_id(r, title_id):
     # Obtiene el título
     try:
@@ -104,11 +111,16 @@ def register_user(r):
         except json.decoder.JSONDecodeError:
             return JsonResponse({"message": "Bad request"}, status=400)
 
+        # Si el número de teléfono está vacío, se asigna None(null)
+        if data["phone"] == "":
+            data["phone"] = None
+
         # Se intenta obtener el usuario de la BBDD con los datos obtenidos
+        # - Solo se obtiene con el teléfono si el campo no es null
         user_exists = Users.objects.filter(
-            Q(username=data["username"])
+            (Q(phone__isnull=False) & Q(phone=data["phone"]))
+            | Q(username=data["username"])
             | Q(email=data["email"])
-            | Q(phone=data["phone"])
         ).exists()
 
         # Si el usuario existe en la BBDD, conflicto
@@ -124,34 +136,34 @@ def register_user(r):
             return JsonResponse({"message": "Bad request"}, status=400)
 
         # Se añade el usuario a la BBDD
-        usuario = Users()
-        usuario.username = data["username"]
-        usuario.email = data["email"]
-        usuario.phone = data["phone"]
-        usuario.birthdate = data["birthDate"]
-        usuario.name = data["name"]
-        usuario.surname = data["surname"]
+        user = Users()
+        user.username = data["username"]
+        user.email = data["email"]
+        user.phone = data["phone"]
+        user.birthdate = data["birthDate"]
+        user.name = data["name"]
+        user.surname = data["surname"]
 
         # Se añade la fecha actual como fecha de registro
-        usuario.registerdate = datetime.datetime.now()
+        user.registerdate = datetime.datetime.now()
 
         # Se obtienen todas las claves primarias de la tabla Avatars
         avatar_ids = Avatars.objects.values_list("pk", flat=True)
 
         # Se asigna un avatar aleatorio
-        usuario.avatarid = Avatars.objects.get(pk=choice(avatar_ids))
+        user.avatarid = Avatars.objects.get(pk=choice(avatar_ids))
 
         # Se asigna la contraseña encriptada
-        usuario.set_password(data["password"])
+        user.set_password(data["password"])
 
         # Se guarda el usuario
-        usuario.save()
+        user.save()
 
         # Se genera el token
-        token_string = get_random_string(length=32)
+        token_string = get_new_token()
         new_token = Tokens()
         new_token.token = token_string
-        new_token.userid = usuario
+        new_token.userid = user
         new_token.save()
 
         # Se devuelve un 201
