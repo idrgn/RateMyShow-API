@@ -26,15 +26,15 @@ SECRET_KEY = "django-insecure-0lp8-13ki^tgsr%7le_9vk-ajr2v1!4)&c0pck@d$aimg5l78o
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "ec2-35-181-48-198.eu-west-3.compute.amazonaws.com",
     "localhost",
     "api.ratemyshow.lekiam.net",
+    "ec2-35-181-48-198.eu-west-3.compute.amazonaws.com",
 ]
-
 
 # Application definition
 
 INSTALLED_APPS = [
+    "corsheaders",
     "webserviceapp.apps.WebserviceappConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -52,7 +52,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = "RateMyShow.urls"
 
