@@ -44,6 +44,8 @@ CREATE TABLE `Ratings` (
 	`posterId` INT NOT NULL,
 	`titleId` VARCHAR(255) NOT NULL,
 	`rating` FLOAT NOT NULL,
+	`addedDate` DATETIME NOT NULL,
+	`comment` TEXT,
 	PRIMARY KEY (`id`)
 );
 
@@ -106,6 +108,21 @@ CREATE TABLE `Genres` (
 	PRIMARY KEY (`id`)
 );
 
+CREATE TABLE `Favorites` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`userId` INT NOT NULL,
+	`titleId` VARCHAR(255) NOT NULL,
+	`addedDate` DATETIME NOT NULL,
+	PRIMARY KEY (`id`)
+);
+
+CREATE TABLE `Pending` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`userId` INT NOT NULL,
+	`titleId` VARCHAR(255) NOT NULL,
+	`addedDate` DATETIME NOT NULL,
+	PRIMARY KEY (`id`)
+);
 
 --------------------
 -- Claves foráneas--
@@ -135,6 +152,13 @@ ALTER TABLE `Genres` ADD CONSTRAINT `Genres_fk0` FOREIGN KEY (`titleId`) REFEREN
 
 ALTER TABLE `Genres` ADD CONSTRAINT `Genres_fk1` FOREIGN KEY (`genreId`) REFERENCES `GenreTypes`(`id`);
 
+ALTER TABLE `Favorites` ADD CONSTRAINT `Favorites_fk0` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`);
+
+ALTER TABLE `Favorites` ADD CONSTRAINT `Favorites_fk1` FOREIGN KEY (`titleId`) REFERENCES `Titles`(`id`);
+
+ALTER TABLE `Pending` ADD CONSTRAINT `Pending_fk0` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`);
+
+ALTER TABLE `Pending` ADD CONSTRAINT `Pending_fk1` FOREIGN KEY (`titleId`) REFERENCES `Titles`(`id`);
 
 ------------------------------------------------------------------
 -- Importar datos de archivos TSV (deben estar en la ruta /db/) --
