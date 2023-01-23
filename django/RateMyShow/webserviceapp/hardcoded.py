@@ -1,6 +1,13 @@
 from django.http import JsonResponse
 
 
+"""Vistas hardcodeadas de RateMyShow
+
+Devuelven datos y respuestas predefinidas para facilitar el testeo de la aplicación
+Deberán ser reemplazadas en urls.py una vez que los métodos funcionales estén creados
+"""
+
+
 def sessions(r):
     if r.method == "POST":
         return JsonResponse(
@@ -520,6 +527,7 @@ def pending_by_id(r, title_id):
             status=200,
         )
 
+
 def favorite_by_id(r, title_id):
     if r.method == "PUT":
         return JsonResponse(
@@ -529,6 +537,7 @@ def favorite_by_id(r, title_id):
         return JsonResponse(
             status=200,
         )
+
 
 def rating(r, title_id):
     if r.method == "PUT":

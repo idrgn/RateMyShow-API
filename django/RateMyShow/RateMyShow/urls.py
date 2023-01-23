@@ -1,5 +1,7 @@
-from webserviceapp import views
-from webserviceapp import hardcoded
+from django.contrib import admin
+from django.urls import path
+from webserviceapp import hardcoded, views
+
 
 """RateMyShow URL Configuration
 
@@ -16,8 +18,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path
+
 
 urlpatterns = [
     # Funcionales
