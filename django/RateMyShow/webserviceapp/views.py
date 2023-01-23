@@ -1,12 +1,15 @@
+import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
+from django.db.models import Q
 from bs4 import BeautifulSoup
 from random import choice
 import requests
+import json
 
-from .models import Titles
+from .models import Titles, Users, Avatars
 
 
 def get_title_data(title_id):
@@ -97,6 +100,56 @@ def get_random_title(r):
 @csrf_exempt
 def register_user(r):
     if r.method == "POST":
+        # Se intenta obtener el cuerpo de la petición
+        try:
+            data = json.loads(r.body)
+        except json.decoder.JSONDecodeError:
+            return JsonResponse({"message": "Bad request"}, status=400)
+
+        # Se intenta obtener el usuario de la BBDD con los datos obtenidos
+        user_exists = Users.objects.filter(
+            Q(username=data["username"])
+            | Q(email=data["email"])
+            | Q(phone=data["phone"])
+        ).exists()
+
+        # Si el usuario existe en la BBDD, conflicto
+        if user_exists:
+            return JsonResponse(
+                {"message": "User already exists"},
+                json_dumps_params={"ensure_ascii": False},
+                status=409,
+            )
+
+        # Si los datos no existen, 400
+        if not data["username"] or not data["email"]:
+            return JsonResponse({"message": "Bad request"}, status=400)
+
+        # Se añade el usuario a la BBDD
+        usuario = Users()
+        usuario.username = data["username"]
+        usuario.email = data["email"]
+        usuario.phone = data["phone"]
+        usuario.birthdate = data["birthDate"]
+        usuario.name = data["name"]
+        usuario.surname = data["surname"]
+
+        # Se añade la fecha actual como fecha de registro
+        usuario.registerdate = datetime.datetime.now()
+
+        # Se obtienen todas las claves primarias de la tabla Avatars
+        avatar_ids = Avatars.objects.values_list("pk", flat=True)
+
+        # Se asigna un avatar aleatorio
+        usuario.avatarid = Avatars.objects.get(pk=choice(avatar_ids))
+
+        # Se asigna la contraseña encriptada
+        usuario.set_password(data["password"])
+
+        # Se guarda el usuario
+        usuario.save()
+
+        # Se devuelve un 201
         return JsonResponse(
             {"sessionToken": "ABCDEF123456789"},
             json_dumps_params={"ensure_ascii": False},
