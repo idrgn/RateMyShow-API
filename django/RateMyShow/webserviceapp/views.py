@@ -1,12 +1,12 @@
+from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from bs4 import BeautifulSoup
 from random import choice
+import requests
 
 from .models import Titles
-
-import requests
 
 
 def get_title_data(title_id):
@@ -92,3 +92,13 @@ def get_random_title(r):
         json_dumps_params={"ensure_ascii": False},
         status=200,
     )
+
+
+@csrf_exempt
+def register_user(r):
+    if r.method == "POST":
+        return JsonResponse(
+            {"sessionToken": "ABCDEF123456789"},
+            json_dumps_params={"ensure_ascii": False},
+            status=201,
+        )
