@@ -1,11 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Avg
 from django.forms.models import model_to_dict
 from django.utils.crypto import get_random_string
 
-from .models import Titles, Tokens, Genres, Genretypes
-
+from .models import Genres, Ratings, Titles, Tokens
 
 """Funciones de BBDD de RateMyShow
 
@@ -31,7 +31,10 @@ def get_title(title_id):
     # Se añaden a una lista
     genre_list = []
     for genre in genres:
-        genre_list.append(genre.genreid.genre)
+        genre_list.append(genre.genreid.genre.rstrip())
+
+    # Se obtienen las puntuaciones
+    rating = Ratings.objects.filter(titleid=title_id).aggregate(Avg("rating"))
 
     # Si los datos adicionales no existen en la BBDD obtienen de la web
     if title.cover == None or title.description == None:
@@ -78,6 +81,8 @@ def get_title(title_id):
 
     # Se añaden los campos extra
     title_dict["genres"] = genre_list
+    title_dict["rating"] = rating
+    title_dict["language"] = title_dict["language"].rstrip()
 
     # Se devuelve el diccionario
     return title_dict
