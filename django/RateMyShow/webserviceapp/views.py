@@ -87,12 +87,9 @@ def get_random_title(r):
     # Se selecciona una de las claves
     random_pk = choice(pks)
 
-    # Se obtiene el objeto asociado a esa tabla
-    random_item = Titles.objects.get(pk=random_pk)
-
     # Devuelve los datos
     return JsonResponse(
-        get_title_data(random_item.id),
+        get_title_data(random_pk),
         json_dumps_params={"ensure_ascii": False},
         status=200,
     )
