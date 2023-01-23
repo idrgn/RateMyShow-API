@@ -20,8 +20,8 @@ CREATE TABLE `Users` (
 	`birthDate` DATE NOT NULL,
 	`registerDate` DATETIME NOT NULL,
 	`avatarId` INT NOT NULL,
-	`nombre` VARCHAR(255) NOT NULL,
-	`apellidos` VARCHAR(255) NOT NULL,
+	`name` VARCHAR(255) NOT NULL,
+	`surname` VARCHAR(255) NOT NULL,
 	PRIMARY KEY (`id`)
 );
 
