@@ -156,8 +156,8 @@ class Users(models.Model):
     avatarid = models.ForeignKey(
         Avatars, models.DO_NOTHING, db_column="avatarId"
     )  # Field name made lowercase.
-    nombre = models.CharField(max_length=255)
-    apellidos = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    surname = models.CharField(max_length=255)
 
     class Meta:
         managed = False
