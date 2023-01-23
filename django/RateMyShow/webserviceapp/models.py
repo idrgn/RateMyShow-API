@@ -5,7 +5,9 @@
 #   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
+
 from django.db import models
+import bcrypt
 
 
 class Avatars(models.Model):
@@ -162,8 +164,10 @@ class Users(models.Model):
 
     # Set encrypted password
     def set_password(self, raw_password):
-        self.password = raw_password
+        encoded_password = raw_password.encode("utf8")
+        self.password = bcrypt.hashpw(encoded_password, bcrypt.gensalt(rounds=14))
 
     # Check if given password matches set password
     def check_password(self, raw_password):
-        return False
+        encoded_password = raw_password.encode("utf8")
+        return bcrypt.checkpw(encoded_password, self.password)
