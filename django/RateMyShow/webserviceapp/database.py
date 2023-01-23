@@ -84,7 +84,12 @@ def get_title(title_id):
 
 
 def get_new_token():
+    # Genera un token aleatorio
     token_string = get_random_string(length=32)
+
+    # Comprueba que el token no está en la BBDD
     while Tokens.objects.filter(token=token_string).exists():
         token_string = get_random_string(length=32)
+
+    # Devuelve el token generado
     return token_string
