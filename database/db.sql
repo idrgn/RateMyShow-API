@@ -63,7 +63,7 @@ CREATE TABLE `Names` (
 	PRIMARY KEY (`id`)
 );
 
-CREATE TABLE `ParticipantCategory` (
+CREATE TABLE `ParticipantCategories` (
 	`id` INT NOT NULL AUTO_INCREMENT,
 	`category` VARCHAR(255) NOT NULL UNIQUE,
 	PRIMARY KEY (`id`)
@@ -75,7 +75,7 @@ CREATE TABLE `GenreTypes` (
 	PRIMARY KEY (`id`)
 );
 
-CREATE TABLE `Token` (
+CREATE TABLE `Tokens` (
 	`id` INT NOT NULL AUTO_INCREMENT,
 	`userId` INT NOT NULL,
 	`token` VARCHAR(255) NOT NULL UNIQUE,
@@ -140,9 +140,9 @@ ALTER TABLE `Participants` ADD CONSTRAINT `Participants_fk0` FOREIGN KEY (`title
 
 ALTER TABLE `Participants` ADD CONSTRAINT `Participants_fk1` FOREIGN KEY (`personId`) REFERENCES `Names`(`id`);
 
-ALTER TABLE `Participants` ADD CONSTRAINT `Participants_fk2` FOREIGN KEY (`category`) REFERENCES `ParticipantCategory`(`id`);
+ALTER TABLE `Participants` ADD CONSTRAINT `Participants_fk2` FOREIGN KEY (`category`) REFERENCES `ParticipantCategories`(`id`);
 
-ALTER TABLE `Token` ADD CONSTRAINT `Token_fk0` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`);
+ALTER TABLE `Tokens` ADD CONSTRAINT `Tokens_fk0` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`);
 
 ALTER TABLE `Followers` ADD CONSTRAINT `Followers_fk0` FOREIGN KEY (`followerId`) REFERENCES `Users`(`id`);
 
@@ -177,7 +177,7 @@ LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
 LOAD DATA LOCAL INFILE '/db/ParticipantCategory.tsv'
-INTO TABLE ParticipantCategory
+INTO TABLE ParticipantCategories
 FIELDS TERMINATED BY '\t'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
