@@ -59,12 +59,12 @@ class Names(models.Model):
         db_table = "Names"
 
 
-class Participantcategory(models.Model):
+class Participantcategories(models.Model):
     category = models.CharField(unique=True, max_length=255)
 
     class Meta:
         managed = False
-        db_table = "ParticipantCategory"
+        db_table = "ParticipantCategories"
 
 
 class Participants(models.Model):
@@ -75,7 +75,7 @@ class Participants(models.Model):
         Names, models.DO_NOTHING, db_column="personId"
     )  # Field name made lowercase.
     category = models.ForeignKey(
-        Participantcategory, models.DO_NOTHING, db_column="category"
+        Participantcategories, models.DO_NOTHING, db_column="category"
     )
 
     class Meta:
@@ -130,7 +130,7 @@ class Titles(models.Model):
         db_table = "Titles"
 
 
-class Token(models.Model):
+class Tokens(models.Model):
     userid = models.ForeignKey(
         "Users", models.DO_NOTHING, db_column="userId"
     )  # Field name made lowercase.
@@ -138,7 +138,7 @@ class Token(models.Model):
 
     class Meta:
         managed = False
-        db_table = "Token"
+        db_table = "Tokens"
 
 
 class Users(models.Model):
