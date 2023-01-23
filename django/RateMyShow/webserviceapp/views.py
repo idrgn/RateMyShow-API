@@ -1,6 +1,7 @@
 import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.crypto import get_random_string
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.db.models import Q
@@ -9,7 +10,7 @@ from random import choice
 import requests
 import json
 
-from .models import Titles, Users, Avatars
+from .models import Titles, Users, Avatars, Tokens
 
 
 def get_title_data(title_id):
@@ -149,9 +150,16 @@ def register_user(r):
         # Se guarda el usuario
         usuario.save()
 
+        # Se genera el token
+        token_string = get_random_string(length=32)
+        new_token = Tokens()
+        new_token.token = token_string
+        new_token.userid = usuario
+        new_token.save()
+
         # Se devuelve un 201
         return JsonResponse(
-            {"sessionToken": "ABCDEF123456789"},
+            {"sessionToken": token_string},
             json_dumps_params={"ensure_ascii": False},
             status=201,
         )
