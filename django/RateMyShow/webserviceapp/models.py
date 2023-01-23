@@ -1,6 +1,3 @@
-from django.db import models
-from django.contrib.auth.hashers import checkpw, hashpw, gensalt
-
 # This is an auto-generated Django model module.
 # You'll have to do the following manually to clean this up:
 #   * Rearrange models' order
@@ -165,8 +162,8 @@ class Users(models.Model):
 
     # Set encrypted password
     def set_password(self, raw_password):
-        self.password = hashpw(raw_password.encode("utf-8"), gensalt())
+        self.password = raw_password
 
     # Check if given password matches set password
     def check_password(self, raw_password):
-        return checkpw(raw_password.encode("utf-8"), self.password.encode("utf-8"))
+        return False
