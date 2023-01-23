@@ -5,7 +5,7 @@ from django.db.models import Avg
 from django.forms.models import model_to_dict
 from django.utils.crypto import get_random_string
 
-from .models import Genres, Ratings, Titles, Tokens
+from .models import Genres, Ratings, Titles, Tokens, Participants
 
 """Funciones de BBDD de RateMyShow
 
@@ -35,6 +35,19 @@ def get_title(title_id):
 
     # Se obtienen las puntuaciones
     rating = Ratings.objects.filter(titleid=title_id).aggregate(Avg("rating"))
+
+    # Se obtienen los participantes
+    participants = Participants.objects.filter(titleid=title_id)
+
+    # Se añaden a una lista
+    participant_list = []
+    for participant in participants:
+        participant_list.append(
+            {
+                "name": participant.personid.name.rstrip(),
+                "category": participant.category.category.rstrip(),
+            }
+        )
 
     # Si los datos adicionales no existen en la BBDD obtienen de la web
     if title.cover == None or title.description == None:
@@ -81,6 +94,7 @@ def get_title(title_id):
 
     # Se añaden los campos extra
     title_dict["genres"] = genre_list
+    title_dict["crew"] = participant_list
     title_dict["rating"] = rating
     title_dict["language"] = title_dict["language"].rstrip()
 
