@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.urls import path
 from webserviceapp import hardcoded, views
 
-
 """RateMyShow URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:

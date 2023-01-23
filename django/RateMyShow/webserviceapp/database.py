@@ -5,7 +5,7 @@ from django.db.models import Avg
 from django.forms.models import model_to_dict
 from django.utils.crypto import get_random_string
 
-from .models import Genres, Ratings, Titles, Tokens, Participants
+from .models import Genres, Participants, Ratings, Titles, Tokens
 
 """Funciones de BBDD de RateMyShow
 

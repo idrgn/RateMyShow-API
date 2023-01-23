@@ -1,6 +1,5 @@
 from django.http import JsonResponse
 
-
 """Vistas hardcodeadas de RateMyShow
 
 Devuelven datos y respuestas predefinidas para facilitar el testeo de la aplicación

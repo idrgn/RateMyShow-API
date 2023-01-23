@@ -9,7 +9,6 @@ from django.views.decorators.csrf import csrf_exempt
 from .database import get_new_token, get_title
 from .models import Avatars, Titles, Tokens, Users
 
-
 """Vistas de RateMyShow"""
 
 
