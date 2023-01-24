@@ -92,33 +92,37 @@ def best_rated(r):
 
 
 def get_title_by_id(r, title_id):
-    # Obtiene el título
-    try:
-        response = get_title(title_id)
-    except Exception:
-        response = None
+    if r.method == "GET":
+        # Obtiene el título
+        try:
+            response = get_title(title_id)
+        except Exception:
+            response = None
 
-    # Si la respuesta es None, envía un status 404 (Not found)
-    if response == None:
-        return JsonResponse({"message": "Not found"}, status=404)
+        # Si la respuesta es None, envía un status 404 (Not found)
+        if response == None:
+            return JsonResponse({"message": "Not found"}, status=404)
 
-    # Se envía la respuesta con status 200 (OK)
-    return JsonResponse(response, json_dumps_params={"ensure_ascii": False}, status=200)
+        # Se envía la respuesta con status 200 (OK)
+        return JsonResponse(
+            response, json_dumps_params={"ensure_ascii": False}, status=200
+        )
 
 
 def get_random_title(r):
-    # Se obtienen todas las claves primarias de la tabla Titles
-    pks = Titles.objects.values_list("pk", flat=True)
+    if r.method == "GET":
+        # Se obtienen todas las claves primarias de la tabla Titles
+        pks = Titles.objects.values_list("pk", flat=True)
 
-    # Se selecciona una de las claves
-    random_pk = choice(pks)
+        # Se selecciona una de las claves
+        random_pk = choice(pks)
 
-    # Devuelve los datos
-    return JsonResponse(
-        get_title(random_pk),
-        json_dumps_params={"ensure_ascii": False},
-        status=200,
-    )
+        # Devuelve los datos
+        return JsonResponse(
+            get_title(random_pk),
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+        )
 
 
 @csrf_exempt
