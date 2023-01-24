@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .database import get_new_token, get_title
-from .models import Avatars, Titles, Tokens, Users
+from .models import Avatars, Titles, Tokens, Users, Followers
 
 """Vistas de RateMyShow"""
 
@@ -198,4 +198,37 @@ def sessions(r):
             get_title(model_to_dict(token.userid)),
             json_dumps_params={"ensure_ascii": False},
             status=200,
+        )
+
+
+def get_followers_by_id(r, username):
+    if r.method == "GET":
+        try:
+            # Obtiene el usuario
+            user = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            # Si genera un error al obtener el usuario, devuelve notfound
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Obtiene todos los seguidores del usuario
+        followers = Followers.objects.query(followedid=user)
+
+        follower_list = []
+        for follower in followers:
+            # Convierte el objeto dictionary a json
+            dictionary = {
+                "name": follower.name,
+                "username": follower.username,
+                "avatarId": follower.avatarId,
+            }
+
+            # Se añade dictionary
+            follower_list.append(dictionary)
+
+        # Devuelve la lista de usuarios
+        return JsonResponse(
+            follower_list,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
         )
