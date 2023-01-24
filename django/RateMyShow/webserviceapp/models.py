@@ -169,5 +169,12 @@ class Users(models.Model):
 
     # Check if given password matches set password
     def check_password(self, raw_password):
-        encoded_password = raw_password.encode("utf8")
-        return bcrypt.checkpw(encoded_password, self.password)
+        # Se obtiene la contraseña almacenada
+        selfpw = self.password
+
+        # Si la contraseña almacenada es un byte array guayrdado como string, se recorta
+        if isinstance(selfpw, str) and selfpw.startswith("b'") and selfpw.endswith("'"):
+            selfpw = selfpw[2:-1].encode("utf-8")
+
+        # Se comprueba que las contraseñas coinciden
+        return bcrypt.checkpw(raw_password.encode("utf-8"), selfpw)
