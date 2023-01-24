@@ -159,6 +159,7 @@ def sessions(r):
 
     # Si el método es DELETE, se intenta borrar la sesión
     elif r.method == "DELETE":
+
         # Se intenta obtener el SessionToken de los headers
         try:
             session_token = r.headers["SessionToken"]
@@ -176,6 +177,28 @@ def sessions(r):
 
         # Respuesta: 200
         return JsonResponse({"message": "OK"}, status=200)
+
+    # Si el método es GET se obtiene el usuario de la sesión
+    elif r.method == "GET":
+
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Se intenta obtener el token de la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=400)
+
+        # Devuelve los datos del usuario2
+        return JsonResponse(
+            get_title(model_to_dict(token.userid)),
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+        )
 
 
 def get_user_by_name(r, username):
