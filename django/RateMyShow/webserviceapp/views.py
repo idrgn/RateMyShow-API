@@ -4,11 +4,12 @@ from random import choice
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
+from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .database import get_new_token, get_title
-from .models import Avatars, Titles, Tokens, Users
+from .models import Avatars, Titles, Tokens, Users, Followers
 
 """Vistas de RateMyShow"""
 
@@ -175,3 +176,50 @@ def sessions(r):
 
         # Respuesta: 200
         return JsonResponse({"message": "OK"}, status=200)
+
+
+def get_user_by_name(r, username):
+    if r.method == "GET":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            sesion_token = r.headers["SessionToken"]
+        except Exception:
+            # sesion_token = ""
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        try:
+            user = Users.objects.get(username=username)
+        except Exception:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        user_matches = Tokens.objects.filter(
+            Q(token=sesion_token) & Q(userid=user.id)
+        ).exists()
+
+        user_dict = model_to_dict(user)
+
+        del user_dict["password"]
+
+        if not user_matches:
+            del user_dict["email"]
+            del user_dict["phone"]
+
+        # Número de seguidores y seguidos
+
+        followers = Followers.objects.filter(followedid=user).count()
+        user_dict["followers"] = followers
+
+        followed = Followers.objects.filter(followerid=user).count()
+        user_dict["followed"] = followed
+
+        # Lista de favoritos y pendientes
+        favorites = []
+        user_dict["favorites"] = favorites
+        pending = []
+        user_dict["pending"] = pending
+
+        return JsonResponse(
+            user_dict,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+        )

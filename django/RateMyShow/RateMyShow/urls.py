@@ -26,8 +26,8 @@ urlpatterns = [
     path("titles/<str:title_id>", views.get_title_by_id),
     path("users", views.register_user),
     path("sessions", views.sessions),
+    path("users/<str:username>", views.get_user_by_name),
     # Hardcodeadas
-    path("users/<str:username>", hardcoded.get_user_by_name),
     path("users/<str:username>/followers", hardcoded.get_follow_by_name),
     path("users/<str:username>/following", hardcoded.get_follow_by_name),
     path("users/<str:username>/ratings", hardcoded.get_ratings_by_name),
