@@ -2,6 +2,7 @@ import datetime
 import json
 from random import choice
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -112,3 +113,65 @@ def register_user(r):
             json_dumps_params={"ensure_ascii": False},
             status=201,
         )
+
+
+@csrf_exempt
+def sessions(r):
+    # Si el método es POST, se intenta crear una nueva sesión
+    if r.method == "POST":
+
+        # Se intenta obtener el cuerpo de la petición
+        try:
+            data = json.loads(r.body)
+        except json.decoder.JSONDecodeError:
+            return JsonResponse({"message": "Bad request"}, status=400)
+
+        # Se intenta obtener el usuario de la BBDD con los datos obtenidos
+        # - Solo se obtiene con el teléfono si el campo no es null
+        try:
+            user = Users.objects.get(
+                (Q(phone__isnull=False) & Q(phone=data["identifier"]))
+                | Q(username=data["identifier"])
+                | Q(email=data["identifier"])
+            )
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=400)
+
+        # Se intenta verificar la contraseña
+        if user.check_password(data["password"]):
+            # Se genera el token
+            token_string = get_new_token()
+            new_token = Tokens()
+            new_token.token = token_string
+            new_token.userid = user
+            new_token.save()
+
+            # Se devuelve un 201
+            return JsonResponse(
+                {"sessionToken": token_string},
+                json_dumps_params={"ensure_ascii": False},
+                status=201,
+            )
+        else:
+            # Se devuelve 401
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+    # Si el método es DELETE, se intenta borrar la sesión
+    elif r.method == "DELETE":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Se intenta obtener el token de la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=400)
+
+        # Se elimina el token
+        token.delete()
+
+        # Respuesta: 200
+        return JsonResponse({"message": "OK"}, status=200)
