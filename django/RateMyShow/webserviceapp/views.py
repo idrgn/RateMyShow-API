@@ -3,7 +3,7 @@ import json
 from random import choice
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
+from django.db.models import Avg, Q
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -44,6 +44,42 @@ def title_search(r):
         # Se almacenan los datos de cada título en una lista
         result_list = []
         for title in search[amount_per_page * page : amount_per_page * (page + 1)]:
+            result_list.append(get_title(title.id))
+
+        # Se devuelve la lista
+        return JsonResponse(
+            result_list,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
+
+
+def best_rated(r):
+    if r.method == "GET":
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
+
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+
+        # Se obtienen los resultados
+        titles = (
+            Titles.objects.prefetch_related("ratings_set")
+            .annotate(average_rating=Avg("ratings__rating"))
+            .order_by("-average_rating")
+        )
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
+        # Se almacenan los datos de cada título en una lista
+        result_list = []
+        for title in titles[amount_per_page * page : amount_per_page * (page + 1)]:
             result_list.append(get_title(title.id))
 
         # Se devuelve la lista
