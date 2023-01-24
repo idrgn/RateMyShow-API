@@ -14,6 +14,47 @@ from .models import Avatars, Titles, Tokens, Users
 """Vistas de RateMyShow"""
 
 
+def title_search(r):
+    if r.method == "GET":
+        # Se obtienen los parámetros de URL
+        query = r.GET.get("query", None)
+
+        # Si no se envía query, devuelve un 404
+        if query == None:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
+
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+
+        # Se obtienen los resultados
+        search = Titles.objects.filter(
+            Q(primarytitle__icontains=query) | Q(originaltitle__icontains=query)
+        )
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
+        # Se almacenan los datos de cada título en una lista
+        result_list = []
+        for title in search[amount_per_page * page : amount_per_page * (page + 1)]:
+            result_list.append(get_title(title.id))
+
+        # Se devuelve la lista
+        return JsonResponse(
+            result_list,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
+
+
 def get_title_by_id(r, title_id):
     # Obtiene el título
     try:
