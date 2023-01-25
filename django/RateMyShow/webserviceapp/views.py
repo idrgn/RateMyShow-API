@@ -1,5 +1,6 @@
 import datetime
 import json
+import math
 from random import choice
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -38,6 +39,9 @@ def title_search(r):
             Q(primarytitle__icontains=query) | Q(originaltitle__icontains=query)
         )
 
+        # Almacenar cantidad total
+        total = search.count()
+
         # Cantidad de resultados por página
         amount_per_page = 15
 
@@ -48,7 +52,12 @@ def title_search(r):
 
         # Se devuelve la lista
         return JsonResponse(
-            result_list,
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "result": result_list,
+            },
             json_dumps_params={"ensure_ascii": False},
             status=200,
             safe=False,
@@ -74,6 +83,9 @@ def best_rated(r):
             .order_by("-average_rating")
         )
 
+        # Almacenar cantidad total
+        total = titles.count()
+
         # Cantidad de resultados por página
         amount_per_page = 15
 
@@ -84,7 +96,12 @@ def best_rated(r):
 
         # Se devuelve la lista
         return JsonResponse(
-            result_list,
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "result": result_list,
+            },
             json_dumps_params={"ensure_ascii": False},
             status=200,
             safe=False,
