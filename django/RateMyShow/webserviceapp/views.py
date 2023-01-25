@@ -300,22 +300,26 @@ def get_user_by_name(r, username):
             Q(token=sesion_token) & Q(userid=user.id)
         ).exists()
 
-        user_dict = model_to_dict(user)
-        user_dict["avatarId"] = user_dict["avatarid"]
-        del user_dict["avatarid"]
-        del user_dict["password"]
+        user_dict = {
+            "username": user.username,
+            "birthdate": user.birthdate,
+            "name": user.name,
+            "surname": user.surname,
+            "avatarId": user.avatarid,
+            "registerDate": user.registerdate,
+        }
 
-        if not user_matches:
-            del user_dict["email"]
-            del user_dict["phone"]
+        if user_matches:
+            user_dict["email"] = user.email
+            user_dict["phone"] = user.phone
 
         # Número de seguidores y seguidos
 
         followers = Followers.objects.filter(followedid=user).count()
-        user_dict["numFollowers"] = followers
+        user_dict["followers"] = followers
 
         followed = Followers.objects.filter(followerid=user).count()
-        user_dict["numFollowing"] = followed
+        user_dict["following"] = followed
 
         # Lista de favoritos y pendientes
         favorites = Favorites.objects.filter(userid=user).order_by("addeddate")
