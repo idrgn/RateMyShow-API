@@ -234,7 +234,7 @@ def sessions(r):
                 | Q(email=data["identifier"])
             )
         except ObjectDoesNotExist:
-            return JsonResponse({"message": "Not found"}, status=400)
+            return JsonResponse({"message": "Not found"}, status=404)
 
         # Se intenta verificar la contraseña
         if user.check_password(data["password"]):
@@ -268,7 +268,7 @@ def sessions(r):
         try:
             token = Tokens.objects.get(token=session_token)
         except ObjectDoesNotExist:
-            return JsonResponse({"message": "Not found"}, status=400)
+            return JsonResponse({"message": "Not found"}, status=404)
 
         # Se elimina el token
         token.delete()
@@ -289,11 +289,15 @@ def sessions(r):
         try:
             token = Tokens.objects.get(token=session_token)
         except ObjectDoesNotExist:
-            return JsonResponse({"message": "Not found"}, status=400)
+            return JsonResponse({"message": "Not found"}, status=404)
 
-        # Devuelve los datos del usuario2
+        # Devuelve los datos del usuario
         return JsonResponse(
-            get_title(model_to_dict(token.userid)),
+            {
+                "userName": token.userid.username,
+                "avatarId": token.userid.avatar,
+                "name": token.userid.name,
+            },
             json_dumps_params={"ensure_ascii": False},
             status=200,
         )
