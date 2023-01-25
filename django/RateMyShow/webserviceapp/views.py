@@ -5,7 +5,6 @@ from random import choice
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg, Q
-from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
