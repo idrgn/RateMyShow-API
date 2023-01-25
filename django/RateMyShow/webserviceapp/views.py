@@ -230,10 +230,10 @@ def get_user_by_name(r, username):
         # Número de seguidores y seguidos
 
         followers = Followers.objects.filter(followedid=user).count()
-        user_dict["followers"] = followers
+        user_dict["numFollowers"] = followers
 
         followed = Followers.objects.filter(followerid=user).count()
-        user_dict["followed"] = followed
+        user_dict["numFollowing"] = followed
 
         # Lista de favoritos y pendientes
         favorites = []
