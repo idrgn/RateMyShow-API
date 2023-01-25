@@ -291,15 +291,18 @@ def get_user_by_name(r, username):
             # sesion_token = ""
             return JsonResponse({"message": "Unauthorized"}, status=401)
 
+        # Intenta buscar el usuario en la BBDD
         try:
             user = Users.objects.get(username=username)
         except Exception:
             return JsonResponse({"message": "Not found"}, status=404)
 
+        # Se comprueba que es el propio usuario
         user_matches = Tokens.objects.filter(
             Q(token=sesion_token) & Q(userid=user.id)
         ).exists()
 
+        # Se crea el diccionario
         user_dict = {
             "username": user.username,
             "birthdate": user.birthdate,
@@ -309,25 +312,26 @@ def get_user_by_name(r, username):
             "registerDate": user.registerdate,
         }
 
+        # Si es el propio usuario se añaden datos extra.
         if user_matches:
             user_dict["email"] = user.email
             user_dict["phone"] = user.phone
 
         # Número de seguidores y seguidos
-
         followers = Followers.objects.filter(followedid=user).count()
         user_dict["followers"] = followers
 
         followed = Followers.objects.filter(followerid=user).count()
         user_dict["following"] = followed
 
-        # Lista de favoritos y pendientes
+        # Lista de favoritos
         favorites = Favorites.objects.filter(userid=user).order_by("addeddate")
         favorites_list = []
         for favorite in favorites[0:5]:
             favorites_list.append(get_title(favorite.titleid.pk))
         user_dict["favorites"] = favorites_list
 
+        # Lista de pendientes
         pendings = Pending.objects.filter(userid=user).order_by("addeddate")
         pending_list = []
         for pending in pendings[0:5]:
