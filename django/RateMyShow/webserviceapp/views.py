@@ -232,3 +232,36 @@ def get_followers_by_id(r, username):
             status=200,
             safe=False,
         )
+
+
+def get_following_by_id(r, username):
+    if r.method == "GET":
+        try:
+            # Obtiene el usuario
+            user = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            # Si genera un error al obtener el usuario, devuelve notfound
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Obtiene todos los usuarios a los que sigue el usuario
+        followers = Followers.objects.query(followerid=user)
+
+        follower_list = []
+        for follower in followers:
+            # Convierte el objeto dictionary a json
+            dictionary = {
+                "name": follower.name,
+                "username": follower.username,
+                "avatarId": follower.avatarId,
+            }
+
+            # Se añade dictionary
+            follower_list.append(dictionary)
+
+        # Devuelve la lista de usuarios
+        return JsonResponse(
+            follower_list,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
