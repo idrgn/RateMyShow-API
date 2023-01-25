@@ -292,15 +292,15 @@ def get_followers_by_id(r, username):
             return JsonResponse({"message": "Not found"}, status=404)
 
         # Obtiene todos los seguidores del usuario
-        followers = Followers.objects.query(followedid=user)
+        followers = Followers.objects.filter(followedid=user)
 
         follower_list = []
         for follower in followers:
             # Convierte el objeto dictionary a json
             dictionary = {
-                "name": follower.name,
-                "username": follower.username,
-                "avatarId": follower.avatarId,
+                "name": follower.followerid.name,
+                "username": follower.followerid.username,
+                "avatarId": follower.followerid.avatarid.pk,
             }
 
             # Se añade dictionary
@@ -312,9 +312,9 @@ def get_followers_by_id(r, username):
             json_dumps_params={"ensure_ascii": False},
             status=200,
             safe=False,
-            )
+        )
 
-            
+
 def get_user_by_name(r, username):
     if r.method == "GET":
         # Se intenta obtener el SessionToken de los headers
@@ -388,15 +388,15 @@ def get_following_by_id(r, username):
             return JsonResponse({"message": "Not found"}, status=404)
 
         # Obtiene todos los usuarios a los que sigue el usuario
-        followers = Followers.objects.query(followerid=user)
+        followers = Followers.objects.filter(followerid=user)
 
         follower_list = []
         for follower in followers:
             # Convierte el objeto dictionary a json
             dictionary = {
-                "name": follower.name,
-                "username": follower.username,
-                "avatarId": follower.avatarId,
+                "name": follower.followedid.name,
+                "username": follower.followedid.username,
+                "avatarId": follower.followedid.avatarid.pk,
             }
 
             # Se añade dictionary
