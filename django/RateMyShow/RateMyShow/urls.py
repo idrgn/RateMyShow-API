@@ -22,8 +22,10 @@ Including another URLconf
 urlpatterns = [
     # Funcionales
     path("admin/", admin.site.urls),
+    path("titles", views.title_search),
     path("titles/random", views.get_random_title),
     path("titles/<str:title_id>", views.get_title_by_id),
+    path("best", views.best_rated),
     path("users", views.register_user),
     path("sessions", views.sessions),
     path("users/<str:username>/followers", views.get_followers_by_id),
@@ -33,7 +35,6 @@ urlpatterns = [
     path("users/<str:username>/ratings", hardcoded.get_ratings_by_name),
     path("users/<str:username>/follow", hardcoded.follow),
     path("users/feed", hardcoded.feed),
-    path("users/best_rated", hardcoded.best_rated),
     path("users/recommendations", hardcoded.recommendations),
     path("users/latest", hardcoded.latest),
     path("users/favorites", hardcoded.favorites),
