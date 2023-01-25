@@ -3,7 +3,7 @@ import json
 from random import choice
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
+from django.db.models import Avg, Q
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -14,34 +14,115 @@ from .models import Avatars, Titles, Tokens, Users, Followers
 """Vistas de RateMyShow"""
 
 
+def title_search(r):
+    if r.method == "GET":
+        # Se obtienen los parámetros de URL
+        query = r.GET.get("query", None)
+
+        # Si no se envía query, devuelve un 404
+        if query == None:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
+
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+
+        # Se obtienen los resultados
+        search = Titles.objects.filter(
+            Q(primarytitle__icontains=query) | Q(originaltitle__icontains=query)
+        )
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
+        # Se almacenan los datos de cada título en una lista
+        result_list = []
+        for title in search[amount_per_page * page : amount_per_page * (page + 1)]:
+            result_list.append(get_title(title.id))
+
+        # Se devuelve la lista
+        return JsonResponse(
+            result_list,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
+
+
+def best_rated(r):
+    if r.method == "GET":
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
+
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+
+        # Se obtienen los resultados
+        titles = (
+            Titles.objects.prefetch_related("ratings_set")
+            .annotate(average_rating=Avg("ratings__rating"))
+            .order_by("-average_rating")
+        )
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
+        # Se almacenan los datos de cada título en una lista
+        result_list = []
+        for title in titles[amount_per_page * page : amount_per_page * (page + 1)]:
+            result_list.append(get_title(title.id))
+
+        # Se devuelve la lista
+        return JsonResponse(
+            result_list,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
+
+
 def get_title_by_id(r, title_id):
-    # Obtiene el título
-    try:
-        response = get_title(title_id)
-    except Exception:
-        response = None
+    if r.method == "GET":
+        # Obtiene el título
+        try:
+            response = get_title(title_id)
+        except Exception:
+            response = None
 
-    # Si la respuesta es None, envía un status 404 (Not found)
-    if response == None:
-        return JsonResponse({"message": "Not found"}, status=404)
+        # Si la respuesta es None, envía un status 404 (Not found)
+        if response == None:
+            return JsonResponse({"message": "Not found"}, status=404)
 
-    # Se envía la respuesta con status 200 (OK)
-    return JsonResponse(response, json_dumps_params={"ensure_ascii": False}, status=200)
+        # Se envía la respuesta con status 200 (OK)
+        return JsonResponse(
+            response, json_dumps_params={"ensure_ascii": False}, status=200
+        )
 
 
 def get_random_title(r):
-    # Se obtienen todas las claves primarias de la tabla Titles
-    pks = Titles.objects.values_list("pk", flat=True)
+    if r.method == "GET":
+        # Se obtienen todas las claves primarias de la tabla Titles
+        pks = Titles.objects.values_list("pk", flat=True)
 
-    # Se selecciona una de las claves
-    random_pk = choice(pks)
+        # Se selecciona una de las claves
+        random_pk = choice(pks)
 
-    # Devuelve los datos
-    return JsonResponse(
-        get_title(random_pk),
-        json_dumps_params={"ensure_ascii": False},
-        status=200,
-    )
+        # Devuelve los datos
+        return JsonResponse(
+            get_title(random_pk),
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+        )
 
 
 @csrf_exempt
