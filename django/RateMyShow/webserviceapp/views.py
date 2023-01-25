@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .database import get_new_token, get_title
-from .models import Avatars, Titles, Tokens, Users, Followers
+from .models import Avatars, Titles, Tokens, Users, Followers, Favorites, Pending
 
 """Vistas de RateMyShow"""
 
@@ -301,7 +301,8 @@ def get_user_by_name(r, username):
         ).exists()
 
         user_dict = model_to_dict(user)
-
+        user_dict["avatarId"] = user_dict["avatarid"]
+        del user_dict["avatarid"]
         del user_dict["password"]
 
         if not user_matches:
@@ -317,10 +318,17 @@ def get_user_by_name(r, username):
         user_dict["numFollowing"] = followed
 
         # Lista de favoritos y pendientes
-        favorites = []
-        user_dict["favorites"] = favorites
-        pending = []
-        user_dict["pending"] = pending
+        favorites = Favorites.objects.filter(userid=user).order_by("addeddate")
+        favorites_list = []
+        for favorite in favorites[0:5]:
+            favorites_list.append(get_title(favorite.titleid.pk))
+        user_dict["favorites"] = favorites_list
+
+        pendings = Pending.objects.filter(userid=user).order_by("addeddate")
+        pending_list = []
+        for pending in pendings[0:5]:
+            pending_list.append(get_title(pending.titleid.id))
+        user_dict["pending"] = pending_list
 
         return JsonResponse(
             user_dict,
