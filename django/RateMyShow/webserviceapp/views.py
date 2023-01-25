@@ -308,7 +308,7 @@ def get_user_by_name(r, username):
             "birthdate": user.birthdate,
             "name": user.name,
             "surname": user.surname,
-            "avatarId": user.avatarid,
+            "avatarId": user.avatarid.pk,
             "registerDate": user.registerdate,
         }
 
@@ -335,7 +335,7 @@ def get_user_by_name(r, username):
         pendings = Pending.objects.filter(userid=user).order_by("addeddate")
         pending_list = []
         for pending in pendings[0:5]:
-            pending_list.append(get_title(pending.titleid.id))
+            pending_list.append(get_title(pending.titleid.pk))
         user_dict["pending"] = pending_list
 
         return JsonResponse(
