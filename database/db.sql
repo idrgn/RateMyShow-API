@@ -211,4 +211,23 @@ IGNORE 1 ROWS;
 -- Se añade el avatar por defecto --
 ------------------------------------
 
-insert into Avatars values(0, "default");
+insert into Avatars values(0, "Pollito");
+insert into Avatars values(1, "Abeja");
+insert into Avatars values(2, "Ajolote");
+insert into Avatars values(3, "Koala");
+insert into Avatars values(4, "Leon");
+insert into Avatars values(5, "Oveja");
+insert into Avatars values(6, "Tortuga");
+insert into Avatars values(7, "Pajaro");
+insert into Avatars values(8, "Vaca");
+insert into Avatars values(9, "Zorro");
+insert into Avatars values(10, "Tigre");
+insert into Avatars values(11, "Oso");
+insert into Avatars values(12, "Rana");
+insert into Avatars values(13, "Vaca2");
+insert into Avatars values(14, "Pajaro2");
+insert into Avatars values(15, "Panda");
+insert into Avatars values(16, "Hipopotamo");
+insert into Avatars values(17, "Zorro2");
+insert into Avatars values(18, "Ciervo");
+insert into Avatars values(19, "Nutria");
