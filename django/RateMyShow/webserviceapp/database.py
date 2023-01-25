@@ -25,6 +25,9 @@ def get_title(title_id):
         # Si genera un error al obtener el título, revuelve none
         return None
 
+    # Se obtiene el tipo de título
+    title_type = title.titletype.name.rstrip()
+
     # Se obtienen los géneros
     genres = Genres.objects.filter(titleid=title_id)
 
@@ -93,6 +96,7 @@ def get_title(title_id):
     title_dict = model_to_dict(title)
 
     # Se añaden los campos extra
+    title_dict["titletype"] = title_type
     title_dict["genres"] = genre_list
     title_dict["crew"] = participant_list
     title_dict["rating"] = rating["rating__avg"]
