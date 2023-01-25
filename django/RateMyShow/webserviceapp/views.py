@@ -325,14 +325,14 @@ def get_user_by_name(r, username):
         user_dict["following"] = followed
 
         # Lista de favoritos
-        favorites = Favorites.objects.filter(userid=user).order_by("addeddate")
+        favorites = Favorites.objects.filter(userid=user).order_by("-addeddate")
         favorites_list = []
         for favorite in favorites[0:5]:
             favorites_list.append(get_title(favorite.titleid.pk))
         user_dict["favorites"] = favorites_list
 
         # Lista de pendientes
-        pendings = Pending.objects.filter(userid=user).order_by("addeddate")
+        pendings = Pending.objects.filter(userid=user).order_by("-addeddate")
         pending_list = []
         for pending in pendings[0:5]:
             pending_list.append(get_title(pending.titleid.pk))
