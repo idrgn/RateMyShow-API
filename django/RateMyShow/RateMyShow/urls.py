@@ -28,10 +28,10 @@ urlpatterns = [
     path("best", views.best_rated),
     path("users", views.register_user),
     path("sessions", views.sessions),
-    path("users/<str:username>/followers", views.get_followers_by_id),
-    path("users/<str:username>/following", views.get_following_by_id),
+    path("users/<str:username>", views.get_user_by_name),
+    path("users/<str:username>/followers", views.get_followers_by_name),
+    path("users/<str:username>/following", views.get_following_by_name),
     # Hardcodeadas
-    path("users/<str:username>", hardcoded.get_user_by_name),
     path("users/<str:username>/ratings", hardcoded.get_ratings_by_name),
     path("users/<str:username>/follow", hardcoded.follow),
     path("users/feed", hardcoded.feed),

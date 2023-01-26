@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .database import get_new_token, get_title
-from .models import Avatars, Titles, Tokens, Users, Followers, Favorites, Pending
+from .models import Avatars, Favorites, Followers, Pending, Titles, Tokens, Users
 
 """Vistas de RateMyShow"""
 
@@ -302,39 +302,6 @@ def sessions(r):
         )
 
 
-def get_followers_by_id(r, username):
-    if r.method == "GET":
-        try:
-            # Obtiene el usuario
-            user = Users.objects.get(username=username)
-        except ObjectDoesNotExist:
-            # Si genera un error al obtener el usuario, devuelve notfound
-            return JsonResponse({"message": "Not found"}, status=404)
-
-        # Obtiene todos los seguidores del usuario
-        followers = Followers.objects.filter(followedid=user)
-
-        follower_list = []
-        for follower in followers:
-            # Convierte el objeto dictionary a json
-            dictionary = {
-                "name": follower.followerid.name,
-                "username": follower.followerid.username,
-                "avatarId": follower.followerid.avatarid.pk,
-            }
-
-            # Se añade dictionary
-            follower_list.append(dictionary)
-
-        # Devuelve la lista de usuarios
-        return JsonResponse(
-            follower_list,
-            json_dumps_params={"ensure_ascii": False},
-            status=200,
-            safe=False,
-        )
-
-
 def get_user_by_name(r, username):
     if r.method == "GET":
         # Se intenta obtener el SessionToken de los headers
@@ -398,7 +365,40 @@ def get_user_by_name(r, username):
         )
 
 
-def get_following_by_id(r, username):
+def get_followers_by_name(r, username):
+    if r.method == "GET":
+        try:
+            # Obtiene el usuario
+            user = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            # Si genera un error al obtener el usuario, devuelve notfound
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Obtiene todos los seguidores del usuario
+        followers = Followers.objects.filter(followedid=user)
+
+        follower_list = []
+        for follower in followers:
+            # Convierte el objeto dictionary a json
+            dictionary = {
+                "name": follower.followerid.name,
+                "username": follower.followerid.username,
+                "avatarId": follower.followerid.avatarid.pk,
+            }
+
+            # Se añade dictionary
+            follower_list.append(dictionary)
+
+        # Devuelve la lista de usuarios
+        return JsonResponse(
+            follower_list,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
+
+
+def get_following_by_name(r, username):
     if r.method == "GET":
         try:
             # Obtiene el usuario
