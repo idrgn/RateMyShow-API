@@ -1,3 +1,4 @@
+import imdb
 import requests
 from bs4 import BeautifulSoup
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,9 +12,32 @@ from .models import Genres, Participants, Ratings, Titles, Tokens
 Funciones de ayuda encargadas de obtener datos de la BBDD que se usarían en varias vistas
 
 Métodos:
- - get_title: obtiene los datos procesados de un título
+ - get_title_html: obtiene html de imdb de un título, por ID
+ - get_title: obtiene los datos procesados de un título, por ID
  - get_new_token: obtiene un token de sesión de usuario no existente en la BBDD
 """
+
+
+def get_title_html(title_id):
+    # Se definen headers
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36",
+        "Accept-Language": "es-ES,es;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+    }
+
+    # Se intenta hacer la petición
+    try:
+        request_response = requests.get(
+            f"http://www.imdb.com/title/{title_id}/", headers=headers
+        )
+        soup = BeautifulSoup(request_response.text, "html.parser")
+        return soup
+
+    except Exception:
+        return None
 
 
 def get_title(title_id):
@@ -52,44 +76,64 @@ def get_title(title_id):
         )
 
     # Si los datos adicionales no existen en la BBDD obtienen de la web
-    if title.cover == None or title.description == None:
+    if title.cover == None or title.description == None or title.language == None:
+        # Se crea una instancia de Cinemagoer
+        ia = imdb.Cinemagoer()
 
-        # Se definen headers
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36",
-            "Accept-Language": "es-ES,es;q=0.9",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
-        }
-
-        # Se intenta hacer la petición
         try:
-            request_response = requests.get(
-                f"http://www.imdb.com/title/{title_id}/", headers=headers
-            )
-            soup = BeautifulSoup(request_response.text, "html.parser")
+            # Se obtiene la película enviando la ID (solo los números)
+            movie = ia.get_movie(title_id.lstrip("tt"))
 
-            # Se intenta obtener el cover
-            try:
-                img_tag = soup.find("img", class_="ipc-image")
-                img_src = img_tag["src"]
-                title.cover = img_src
-                title.save()
-            except Exception:
-                pass
+            # Se añade cover si existe
+            if "cover" in movie:
+                title.cover = movie["cover"]
+            elif "full-size cover url" in movie:
+                title.cover = movie["full-size cover url"]
 
-            # Se intenta obtener la descripción
-            try:
-                meta_description = soup.find("meta", attrs={"name": "description"})
-                content = meta_description["content"]
-                title.description = content
-                title.save()
-            except Exception:
-                pass
+            # Se añade el primer idioma si existe
+            if "language codes" in movie:
+                title.language = movie["language codes"][0]
 
         except Exception:
             pass
+
+        finally:
+            title.save()
+
+    # Si sigue faltando algún dato, se obtiene mediante scrapping
+    if title.cover == None or title.description == None:
+
+        try:
+            # Se obtiene el HMTL
+            soup = get_title_html(title_id)
+            if soup:
+                if title.cover == None:
+                    # Se intenta obtener el cover
+                    try:
+                        img_tag = soup.find("img", class_="ipc-image")
+                        img_src = img_tag["src"]
+                        title.cover = img_src
+
+                    except Exception:
+                        pass
+
+                if title.description == None:
+                    # Se intenta obtener la descripción
+                    try:
+                        meta_description = soup.find(
+                            "meta", attrs={"name": "description"}
+                        )
+                        content = meta_description["content"]
+                        title.description = content
+
+                    except Exception:
+                        pass
+
+        except Exception:
+            pass
+
+        finally:
+            title.save()
 
     # Se devuelve el diccionario
     return {
