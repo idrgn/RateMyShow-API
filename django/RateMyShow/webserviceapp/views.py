@@ -644,6 +644,17 @@ def rating(r, title_id):
         # Se intenta obtener el cuerpo de la petición
         try:
             data = json.loads(r.body)
+
+            # Se comprueba que los datos están dentro del límite
+            if data["rating"] > 5.0:
+                rating = 5.0
+            elif data["rating"] < 0.0:
+                rating = 0.0
+
+            # Si el comentario no es un string, se añade un String vacío
+            if not isinstance(data["comment"], str):
+                data["comment"] = None
+
         except json.decoder.JSONDecodeError:
             return JsonResponse({"message": "Bad request"}, status=400)
 
