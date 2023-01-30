@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .database import get_new_token, get_title
-from .models import Avatars, Titles, Tokens, Users, Followers, Favorites, Pending
+from .models import Avatars, Favorites, Followers, Pending, Titles, Tokens, Users
 
 """Vistas de RateMyShow"""
 
@@ -344,3 +344,26 @@ def get_user_by_name(r, username):
             json_dumps_params={"ensure_ascii": False},
             status=200,
         )
+
+
+def favorite_by_id(r, title_id):
+    if r.method == "PUT":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Añade titulo a favoritos
+        favorite = Favorites()
+        favorite.userid = token.userid
+        favorite.titleid = Titles.objects.get(pk=title_id)
+        favorite.addeddate = datetime.date.today()
+        favorite.save()
+        return JsonResponse({"message": "OK"}, status=200)
