@@ -719,6 +719,37 @@ def follow_user(r, username):
         # Respuesta
         return JsonResponse({"message": "OK"}, status=200)
 
+    if r.method == "DELETE":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Intenta obtener el usuario a seguir
+        try:
+            followed = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Obtiene el objeto de la tabla Followers
+        try:
+            result = Followers.objects.get(followerid=token.userid, followedid=followed)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se elimina de la BBDD
+        result.delete()
+
+        # Respuesta
+        return JsonResponse({"message": "OK"}, status=200)
+
 
 def get_user_ratings(r, username):
     if r.method == "GET":
@@ -768,4 +799,3 @@ def get_user_ratings(r, username):
             status=200,
             safe=False,
         )
-
