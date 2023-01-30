@@ -430,22 +430,22 @@ def get_following_by_name(r, username):
         amount_per_page = 15
 
         # Obtiene todos los usuarios a los que sigue el usuario
-        followers = Followers.objects.filter(followerid=user)
+        following = Followers.objects.filter(followerid=user)
 
         # Se obtiene el total de seguidos
-        total = followers.count()
+        total = following.count()
 
-        follower_list = []
-        for follower in followers:
+        following_list = []
+        for user in following:
             # Convierte el objeto dictionary a json
             dictionary = {
-                "name": follower.followedid.name,
-                "username": follower.followedid.username,
-                "avatarId": follower.followedid.avatarid.pk,
+                "name": user.followedid.name,
+                "username": user.followedid.username,
+                "avatarId": user.followedid.avatarid.pk,
             }
 
             # Se añade dictionary
-            follower_list.append(dictionary)
+            following_list.append(dictionary)
 
         # Devuelve la lista de seguidos
         return JsonResponse(
@@ -453,7 +453,7 @@ def get_following_by_name(r, username):
                 "total": total,
                 "pages": int(math.ceil(total / amount_per_page)),
                 "current": page,
-                "following": follower_list,
+                "following": following_list,
             },
             json_dumps_params={"ensure_ascii": False},
             status=200,
