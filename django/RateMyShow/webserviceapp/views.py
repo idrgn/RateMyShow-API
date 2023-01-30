@@ -403,7 +403,9 @@ def get_followers_by_name(r, username):
         total = followers.count()
 
         follower_list = []
-        for follower in followers:
+        for follower in followers[
+            amount_per_page * page : amount_per_page * (page + 1)
+        ]:
             # Convierte el objeto dictionary a json
             dictionary = {
                 "name": follower.followerid.name,
@@ -456,7 +458,7 @@ def get_following_by_name(r, username):
         total = following.count()
 
         following_list = []
-        for user in following:
+        for user in following[amount_per_page * page : amount_per_page * (page + 1)]:
             # Convierte el objeto dictionary a json
             dictionary = {
                 "name": user.followedid.name,
