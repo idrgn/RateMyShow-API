@@ -13,6 +13,7 @@ from .models import (
     Avatars,
     Favorites,
     Followers,
+    Genres,
     Pending,
     Ratings,
     Titles,
@@ -21,6 +22,19 @@ from .models import (
 )
 
 """Vistas de RateMyShow"""
+
+
+def get_most_common_elements(list):
+    element_counts = {}
+    for element in list:
+        if element in element_counts:
+            element_counts[element] += 1
+        else:
+            element_counts[element] = 1
+    sorted_element_counts = sorted(
+        element_counts.items(), key=lambda x: x[1], reverse=True
+    )
+    return [item[0] for item in sorted_element_counts[:3]]
 
 
 def title_search(r):
@@ -333,6 +347,7 @@ def get_user_by_name(r, username):
 
         # Se crea el diccionario
         user_dict = {
+            "isOwnUser": user_matches,
             "username": user.username,
             "birthdate": user.birthdate,
             "name": user.name,
@@ -372,6 +387,96 @@ def get_user_by_name(r, username):
             json_dumps_params={"ensure_ascii": False},
             status=200,
         )
+
+
+def favorite_by_id(r, title_id):
+    if r.method == "PUT":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Añade titulo a favoritos
+        favorite = Favorites()
+        favorite.userid = token.userid
+        favorite.titleid = Titles.objects.get(pk=title_id)
+        favorite.addeddate = datetime.date.today()
+        favorite.save()
+        return JsonResponse({"message": "OK"}, status=200)
+
+    if r.method == "DELETE":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Elimina titulo de favoritos
+        try:
+            favorite = Favorites.objects.get(userid=token.userid, titleid=title_id)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        favorite.delete()
+        return JsonResponse({"message": "OK"}, status=200)
+
+
+def pending_by_id(r, title_id):
+    if r.method == "PUT":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Añade titulo a pendientes
+        pending = Pending()
+        pending.userid = token.userid
+        pending.titleid = Titles.objects.get(pk=title_id)
+        pending.addeddate = datetime.date.today()
+        pending.save()
+        return JsonResponse({"message": "OK"}, status=200)
+
+    if r.method == "DELETE":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Elimina titulo de pendientes
+        try:
+            pending = Pending.objects.get(userid=token.userid, titleid=title_id)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        pending.delete()
+        return JsonResponse({"message": "OK"}, status=200)
 
 
 def get_followers_by_name(r, username):
@@ -647,4 +752,98 @@ def get_feed(r):
             },
             json_dumps_params={"ensure_ascii": False},
             status=200,
+        )
+
+
+def latest(r):
+    if r.method == "GET":
+
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
+
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+        # Se obtienen los títulos ordenados por fecha.
+        search = Titles.objects.all().order_by("-startyear")
+
+        # Almacenar cantidad total
+        total = search.count()
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
+        # Se almacenan los datos de cada título en una lista
+        result_list = []
+        for title in search[amount_per_page * page : amount_per_page * (page + 1)]:
+            result_list.append(get_title(title.id))
+
+        # Se devuelve la lista
+        return JsonResponse(
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "result": result_list,
+            },
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
+
+
+def recommendations(r):
+    if r.method == "GET":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+        # Se obtienen los favoritos del usuario
+        favorites = Favorites.objects.filter(userid=token.userid).values("titleid")
+
+        # Se obtienen los géneros de los favorios
+        favorite_genres = Genres.objects.filter(titleid__in=favorites)
+
+        # Se añaden los favoritos a una lista
+        genre_list = []
+        for favorite in favorite_genres:
+            genre_list.append(favorite.genreid)
+
+        # Se obtienen los 3 géneros qué más aparecen
+        top_genres = get_most_common_elements(genre_list)
+
+        response = []
+
+        # Se obtienen títulos de cada género
+        for genre in top_genres:
+            title_data_list = []
+
+            # Se obtienen los datos de 5 títulos
+            title_list = Genres.objects.filter(genreid=genre).values("titleid")
+            for title in title_list[0:5]:
+                title_data_list.append(get_title(title["titleid"]))
+
+            # Se añade el género y los títulos a la respuesta.
+            response.append(
+                {
+                    "genre": genre.genre.rstrip(),
+                    "titles": title_data_list,
+                }
+            )
+
+        return JsonResponse(
+            response,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
         )
