@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg
-from django.forms.models import model_to_dict
 from django.utils.crypto import get_random_string
 
 from .models import Genres, Participants, Ratings, Titles, Tokens
@@ -92,18 +91,22 @@ def get_title(title_id):
         except Exception:
             pass
 
-    # Se transforma el modelo a un diccionario
-    title_dict = model_to_dict(title)
-
-    # Se añaden los campos extra
-    title_dict["titletype"] = title_type
-    title_dict["genres"] = genre_list
-    title_dict["crew"] = participant_list
-    title_dict["rating"] = rating["rating__avg"]
-    title_dict["language"] = title_dict["language"].rstrip()
-
     # Se devuelve el diccionario
-    return title_dict
+    return {
+        "id": title.pk,
+        "titleType": title_type,
+        "primaryTitle": title.primarytitle,
+        "originalTitle": title.originaltitle,
+        "startYear": title.startyear,
+        "endYear": title.endyear,
+        "runtimeMinutes": title.runtimeminutes,
+        "language": title.language.rstrip(),
+        "cover": title.cover,
+        "description": title.description,
+        "genres": genre_list,
+        "crew": participant_list,
+        "rating": rating["rating__avg"],
+    }
 
 
 def get_new_token():

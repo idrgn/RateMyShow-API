@@ -1,10 +1,10 @@
 import datetime
 import json
+import math
 from random import choice
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg, Q
-from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -38,6 +38,9 @@ def title_search(r):
             Q(primarytitle__icontains=query) | Q(originaltitle__icontains=query)
         )
 
+        # Almacenar cantidad total
+        total = search.count()
+
         # Cantidad de resultados por página
         amount_per_page = 15
 
@@ -48,7 +51,12 @@ def title_search(r):
 
         # Se devuelve la lista
         return JsonResponse(
-            result_list,
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "result": result_list,
+            },
             json_dumps_params={"ensure_ascii": False},
             status=200,
             safe=False,
@@ -74,6 +82,9 @@ def best_rated(r):
             .order_by("-average_rating")
         )
 
+        # Almacenar cantidad total
+        total = titles.count()
+
         # Cantidad de resultados por página
         amount_per_page = 15
 
@@ -84,7 +95,12 @@ def best_rated(r):
 
         # Se devuelve la lista
         return JsonResponse(
-            result_list,
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "result": result_list,
+            },
             json_dumps_params={"ensure_ascii": False},
             status=200,
             safe=False,
@@ -217,7 +233,7 @@ def sessions(r):
                 | Q(email=data["identifier"])
             )
         except ObjectDoesNotExist:
-            return JsonResponse({"message": "Not found"}, status=400)
+            return JsonResponse({"message": "Not found"}, status=404)
 
         # Se intenta verificar la contraseña
         if user.check_password(data["password"]):
@@ -251,7 +267,7 @@ def sessions(r):
         try:
             token = Tokens.objects.get(token=session_token)
         except ObjectDoesNotExist:
-            return JsonResponse({"message": "Not found"}, status=400)
+            return JsonResponse({"message": "Not found"}, status=404)
 
         # Se elimina el token
         token.delete()
@@ -272,11 +288,15 @@ def sessions(r):
         try:
             token = Tokens.objects.get(token=session_token)
         except ObjectDoesNotExist:
-            return JsonResponse({"message": "Not found"}, status=400)
+            return JsonResponse({"message": "Not found"}, status=404)
 
-        # Devuelve los datos del usuario2
+        # Devuelve los datos del usuario
         return JsonResponse(
-            get_title(model_to_dict(token.userid)),
+            {
+                "userName": token.userid.username,
+                "avatarId": token.userid.avatar,
+                "name": token.userid.name,
+            },
             json_dumps_params={"ensure_ascii": False},
             status=200,
         )
@@ -434,3 +454,69 @@ def pending_by_id(r, title_id):
 
         pending.delete()
         return JsonResponse({"message": "OK"}, status=200)
+
+
+def get_followers_by_name(r, username):
+    if r.method == "GET":
+        try:
+            # Obtiene el usuario
+            user = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            # Si genera un error al obtener el usuario, devuelve notfound
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Obtiene todos los seguidores del usuario
+        followers = Followers.objects.filter(followedid=user)
+
+        follower_list = []
+        for follower in followers:
+            # Convierte el objeto dictionary a json
+            dictionary = {
+                "name": follower.followerid.name,
+                "username": follower.followerid.username,
+                "avatarId": follower.followerid.avatarid.pk,
+            }
+
+            # Se añade dictionary
+            follower_list.append(dictionary)
+
+        # Devuelve la lista de usuarios
+        return JsonResponse(
+            follower_list,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
+
+
+def get_following_by_name(r, username):
+    if r.method == "GET":
+        try:
+            # Obtiene el usuario
+            user = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            # Si genera un error al obtener el usuario, devuelve notfound
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Obtiene todos los usuarios a los que sigue el usuario
+        followers = Followers.objects.filter(followerid=user)
+
+        follower_list = []
+        for follower in followers:
+            # Convierte el objeto dictionary a json
+            dictionary = {
+                "name": follower.followedid.name,
+                "username": follower.followedid.username,
+                "avatarId": follower.followedid.avatarid.pk,
+            }
+
+            # Se añade dictionary
+            follower_list.append(dictionary)
+
+        # Devuelve la lista de usuarios
+        return JsonResponse(
+            follower_list,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
