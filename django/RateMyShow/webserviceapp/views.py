@@ -687,3 +687,34 @@ def rating(r, title_id):
 
         # Respuesta
         return JsonResponse({"message": "OK"}, status=200)
+
+
+def follow_user(r, username):
+    if r.method == "PUT":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Intenta obtener el usuario a seguir
+        try:
+            followed = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se añade a la BBDD
+        follower = Followers()
+        follower.followedid = followed
+        follower.followerid = token.userid
+        # follower.followeddate = datetime.datetime.now()
+        follower.save()
+
+        # Respuesta
+        return JsonResponse({"message": "OK"}, status=200)
