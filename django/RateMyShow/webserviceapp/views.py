@@ -412,3 +412,25 @@ def pending_by_id(r, title_id):
         pending.addeddate = datetime.date.today()
         pending.save()
         return JsonResponse({"message": "OK"}, status=200)
+
+    if r.method == "DELETE":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Elimina titulo de pendientes
+        try:
+            pending = Pending.objects.get(userid=token.userid, titleid=title_id)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        pending.delete()
+        return JsonResponse({"message": "OK"}, status=200)
