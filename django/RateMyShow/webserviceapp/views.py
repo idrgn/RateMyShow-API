@@ -9,9 +9,31 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .database import get_new_token, get_title
-from .models import Avatars, Favorites, Followers, Pending, Titles, Tokens, Users
+from .models import (
+    Avatars,
+    Favorites,
+    Followers,
+    Genres,
+    Pending,
+    Titles,
+    Tokens,
+    Users,
+)
 
 """Vistas de RateMyShow"""
+
+
+def get_most_common_elements(list):
+    element_counts = {}
+    for element in list:
+        if element in element_counts:
+            element_counts[element] += 1
+        else:
+            element_counts[element] = 1
+    sorted_element_counts = sorted(
+        element_counts.items(), key=lambda x: x[1], reverse=True
+    )
+    return [item[0] for item in sorted_element_counts[:3]]
 
 
 def title_search(r):
@@ -556,6 +578,60 @@ def latest(r):
                 "current": page,
                 "result": result_list,
             },
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
+
+
+def recommendations(r):
+    if r.method == "GET":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+        # Se obtienen los favoritos del usuario
+        favorites = Favorites.objects.filter(userid=token.userid).values("titleid")
+
+        # Se obtienen los géneros de los favorios
+        favorite_genres = Genres.objects.filter(titleid__in=favorites)
+
+        # Se añaden los favoritos a una lista
+        genre_list = []
+        for favorite in favorite_genres:
+            genre_list.append(favorite.genreid)
+
+        # Se obtienen los 3 géneros qué más aparecen
+        top_genres = get_most_common_elements(genre_list)
+
+        response = []
+
+        # Se obtienen títulos de cada género
+        for genre in top_genres:
+            title_data_list = []
+
+            # Se obtienen los datos de 5 títulos
+            title_list = Genres.objects.filter(genreid=genre).values("titleid")
+            for title in title_list[0:5]:
+                title_data_list.append(get_title(title["titleid"]))
+
+            # Se añade el género y los títulos a la respuesta.
+            response.append(
+                {
+                    "genre": genre.genre.rstrip(),
+                    "titles": title_data_list,
+                }
+            )
+
+        return JsonResponse(
+            response,
             json_dumps_params={"ensure_ascii": False},
             status=200,
             safe=False,
