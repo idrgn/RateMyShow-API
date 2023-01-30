@@ -463,6 +463,9 @@ def get_favorites(r):
         favorites = Favorites.objects.filter(userid=token.userid).order_by("-addeddate")
         favorites_list = []
 
+        # Se obtiene el total de favoritos
+        total = favorites.count()
+
         # Se almacenan los datos de cada título en una lista
         for favorite in favorites[
             amount_per_page * page : amount_per_page * (page + 1)
@@ -471,8 +474,12 @@ def get_favorites(r):
 
         # Devuelve la lista de favoritos
         return JsonResponse(
-            favorites_list,
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "favorites": favorites_list,
+            },
             json_dumps_params={"ensure_ascii": False},
             status=200,
-            safe=False,
         )
