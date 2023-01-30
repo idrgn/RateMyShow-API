@@ -372,7 +372,6 @@ def favorite_by_id(r, title_id):
         # Se intenta obtener el SessionToken de los headers
         try:
             session_token = r.headers["SessionToken"]
-        # session_token = "sBCLKwJ1RxIPp44UHxCHspxC9pwszRnn"
         except Exception:
             return JsonResponse({"message": "Unauthorized"}, status=401)
 
@@ -389,4 +388,27 @@ def favorite_by_id(r, title_id):
             return JsonResponse({"message": "Not found"}, status=404)
 
         favorite.delete()
+        return JsonResponse({"message": "OK"}, status=200)
+
+
+def pending_by_id(r, title_id):
+    if r.method == "PUT":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Añade titulo a pendientes
+        pending = Pending()
+        pending.userid = token.userid
+        pending.titleid = Titles.objects.get(pk=title_id)
+        pending.addeddate = datetime.date.today()
+        pending.save()
         return JsonResponse({"message": "OK"}, status=200)
