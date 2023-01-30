@@ -367,3 +367,26 @@ def favorite_by_id(r, title_id):
         favorite.addeddate = datetime.date.today()
         favorite.save()
         return JsonResponse({"message": "OK"}, status=200)
+
+    if r.method == "DELETE":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        # session_token = "sBCLKwJ1RxIPp44UHxCHspxC9pwszRnn"
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Elimina titulo de favoritos
+        try:
+            favorite = Favorites.objects.get(userid=token.userid, titleid=title_id)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        favorite.delete()
+        return JsonResponse({"message": "OK"}, status=200)
