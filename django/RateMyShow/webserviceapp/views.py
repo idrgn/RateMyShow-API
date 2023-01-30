@@ -560,6 +560,19 @@ def get_feed(r):
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
+
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
         # Obtiene la lista de seguidos del usuario
         followers = Followers.objects.filter(followerid=token.userid).values(
             "followedid"
@@ -568,10 +581,13 @@ def get_feed(r):
         # Obtiene los ratings de los usuarios
         ratings = Ratings.objects.filter(posterid__in=followers).order_by("-addeddate")
 
+        # Se obtiene el total de pendientes
+        total = ratings.count()
+
         feed_data = []
 
         # Obtiene los datos de los títulos
-        for rating in ratings:
+        for rating in ratings[amount_per_page * page : amount_per_page * (page + 1)]:
             entry = get_title(rating.titleid.pk)
             entry["rating"] = rating.rating
             entry["comment"] = rating.comment
@@ -579,10 +595,14 @@ def get_feed(r):
             entry["byUser"] = rating.posterid.username
             feed_data.append(entry)
 
-        # Respuesta
+        # Devuelve la lista de pendientes
         return JsonResponse(
-            feed_data,
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "feed": feed_data,
+            },
             json_dumps_params={"ensure_ascii": False},
             status=200,
-            safe=False,
         )
