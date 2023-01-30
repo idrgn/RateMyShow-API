@@ -718,3 +718,32 @@ def follow_user(r, username):
 
         # Respuesta
         return JsonResponse({"message": "OK"}, status=200)
+
+
+def get_user_ratings(r, username):
+    if r.method == "GET":
+        # Se intenta obtener el Usuario
+        try:
+            user = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se obtiene los ratings del usuario
+        ratings = Ratings.objects.filter(posterid=user).order_by("-addeddate")
+
+        title_data = []
+        # Se obtienen los datos de cada títiulo
+        for rating in ratings:
+            title = get_title(rating.titleid.pk)
+            # Se añade el rating del usuario
+            title["rating"] = rating.rating
+            # Se añade a la lista
+            title_data.append(title)
+
+        # Respuesta
+        return JsonResponse(
+            title_data,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
