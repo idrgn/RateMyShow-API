@@ -33,8 +33,8 @@ urlpatterns = [
     path("titles/<str:title_id>/pending", views.pending_by_id),
     path("users/<str:username>/followers", views.get_followers_by_name),
     path("users/<str:username>/following", views.get_following_by_name),
+    path("latest", views.latest),
     # Hardcodeadas
-    path("latest", hardcoded.latest),
     path("users/<str:username>/ratings", hardcoded.get_ratings_by_name),
     path("users/<str:username>/follow", hardcoded.follow),
     path("users/feed", hardcoded.feed),
