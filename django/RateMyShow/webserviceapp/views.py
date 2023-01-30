@@ -304,6 +304,7 @@ def get_user_by_name(r, username):
 
         # Se crea el diccionario
         user_dict = {
+            "isOwnUser": user_matches,
             "username": user.username,
             "birthdate": user.birthdate,
             "name": user.name,
