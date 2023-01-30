@@ -9,7 +9,16 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .database import get_new_token, get_title
-from .models import Avatars, Favorites, Followers, Pending, Titles, Tokens, Users
+from .models import (
+    Avatars,
+    Favorites,
+    Followers,
+    Pending,
+    Ratings,
+    Titles,
+    Tokens,
+    Users,
+)
 
 """Vistas de RateMyShow"""
 
@@ -484,6 +493,7 @@ def get_favorites(r):
             status=200,
         )
 
+
 def get_pending(r):
     if r.method == "GET":
 
@@ -513,16 +523,14 @@ def get_pending(r):
         amount_per_page = 15
 
         # Obtener lista de pendientes
-        pending= Pending.objects.filter(userid=token.userid).order_by("-addeddate")
+        pending = Pending.objects.filter(userid=token.userid).order_by("-addeddate")
         pending_list = []
 
         # Se obtiene el total de pendientes
         total = pending.count()
 
         # Se almacenan los datos de cada título en una lista
-        for item in pending[
-            amount_per_page * page : amount_per_page * (page + 1)
-        ]:
+        for item in pending[amount_per_page * page : amount_per_page * (page + 1)]:
             pending_list.append(get_title(item.titleid.pk))
 
         # Devuelve la lista de pendientes
@@ -535,4 +543,46 @@ def get_pending(r):
             },
             json_dumps_params={"ensure_ascii": False},
             status=200,
+        )
+
+
+def get_feed(r):
+    if r.method == "GET":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la base de datos
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Obtiene la lista de seguidos del usuario
+        followers = Followers.objects.filter(followerid=token.userid).values(
+            "followedid"
+        )
+
+        # Obtiene los ratings de los usuarios
+        ratings = Ratings.objects.filter(posterid__in=followers).order_by("-addeddate")
+
+        feed_data = []
+
+        # Obtiene los datos de los títulos
+        for rating in ratings:
+            entry = get_title(rating.titleid.pk)
+            entry["rating"] = rating.rating
+            entry["comment"] = rating.comment
+            entry["addeddate"] = rating.addeddate
+            entry["byUser"] = rating.posterid.username
+            feed_data.append(entry)
+
+        # Respuesta
+        return JsonResponse(
+            feed_data,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
         )
