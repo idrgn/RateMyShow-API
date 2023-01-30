@@ -15,6 +15,7 @@ from .models import (
     Followers,
     Genres,
     Pending,
+    Ratings,
     Titles,
     Tokens,
     Users,
@@ -636,3 +637,42 @@ def recommendations(r):
             status=200,
             safe=False,
         )
+
+
+def rating(r, title_id):
+    if r.method == "PUT":
+        # Se intenta obtener el cuerpo de la petición
+        try:
+            data = json.loads(r.body)
+        except json.decoder.JSONDecodeError:
+            return JsonResponse({"message": "Bad request"}, status=400)
+
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Intenta buscar el título en la BBDD
+        try:
+            title = Titles.objects.get(pk=title_id)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se crea el rating
+        rating = Ratings()
+        rating.posterid = token.userid
+        rating.titleid = title
+        rating.comment = data["comment"]
+        rating.rating = data["rating"]
+        rating.addeddate = datetime.datetime.now()
+        rating.save()
+
+        # Respuesta
+        return JsonResponse({"message": "OK"}, status=200)
