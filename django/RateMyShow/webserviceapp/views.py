@@ -728,12 +728,28 @@ def get_user_ratings(r, username):
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
+
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+
         # Se obtiene los ratings del usuario
         ratings = Ratings.objects.filter(posterid=user).order_by("-addeddate")
 
+        # Almacenar cantidad total
+        total = ratings.count()
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
         title_data = []
         # Se obtienen los datos de cada títiulo
-        for rating in ratings:
+        for rating in ratings[amount_per_page * page : amount_per_page * (page + 1)]:
             title = get_title(rating.titleid.pk)
             # Se añade el rating del usuario
             title["rating"] = rating.rating
@@ -742,8 +758,14 @@ def get_user_ratings(r, username):
 
         # Respuesta
         return JsonResponse(
-            title_data,
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "ratings": title_data,
+            },
             json_dumps_params={"ensure_ascii": False},
             status=200,
             safe=False,
         )
+
