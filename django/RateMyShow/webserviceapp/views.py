@@ -15,6 +15,7 @@ from .models import (
     Followers,
     Genres,
     Pending,
+    Ratings,
     Titles,
     Tokens,
     Users,
@@ -487,11 +488,29 @@ def get_followers_by_name(r, username):
             # Si genera un error al obtener el usuario, devuelve notfound
             return JsonResponse({"message": "Not found"}, status=404)
 
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
+
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
         # Obtiene todos los seguidores del usuario
         followers = Followers.objects.filter(followedid=user)
 
+        # Se obtiene el total de seguidores
+        total = followers.count()
+
         follower_list = []
-        for follower in followers:
+        for follower in followers[
+            amount_per_page * page : amount_per_page * (page + 1)
+        ]:
             # Convierte el objeto dictionary a json
             dictionary = {
                 "name": follower.followerid.name,
@@ -502,12 +521,16 @@ def get_followers_by_name(r, username):
             # Se añade dictionary
             follower_list.append(dictionary)
 
-        # Devuelve la lista de usuarios
+        # Devuelve la lista de seguidores
         return JsonResponse(
-            follower_list,
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "followers": follower_list,
+            },
             json_dumps_params={"ensure_ascii": False},
             status=200,
-            safe=False,
         )
 
 
@@ -520,27 +543,215 @@ def get_following_by_name(r, username):
             # Si genera un error al obtener el usuario, devuelve notfound
             return JsonResponse({"message": "Not found"}, status=404)
 
-        # Obtiene todos los usuarios a los que sigue el usuario
-        followers = Followers.objects.filter(followerid=user)
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
 
-        follower_list = []
-        for follower in followers:
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
+        # Obtiene todos los usuarios a los que sigue el usuario
+        following = Followers.objects.filter(followerid=user)
+
+        # Se obtiene el total de seguidos
+        total = following.count()
+
+        following_list = []
+        for user in following[amount_per_page * page : amount_per_page * (page + 1)]:
             # Convierte el objeto dictionary a json
             dictionary = {
-                "name": follower.followedid.name,
-                "username": follower.followedid.username,
-                "avatarId": follower.followedid.avatarid.pk,
+                "name": user.followedid.name,
+                "username": user.followedid.username,
+                "avatarId": user.followedid.avatarid.pk,
             }
 
             # Se añade dictionary
-            follower_list.append(dictionary)
+            following_list.append(dictionary)
 
-        # Devuelve la lista de usuarios
+        # Devuelve la lista de seguidos
         return JsonResponse(
-            follower_list,
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "following": following_list,
+            },
             json_dumps_params={"ensure_ascii": False},
             status=200,
-            safe=False,
+        )
+
+
+def get_favorites(r):
+    if r.method == "GET":
+
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Se intenta obtener el token de la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
+
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
+        # Obtener lista de favoritos
+        favorites = Favorites.objects.filter(userid=token.userid).order_by("-addeddate")
+        favorites_list = []
+
+        # Se obtiene el total de favoritos
+        total = favorites.count()
+
+        # Se almacenan los datos de cada título en una lista
+        for favorite in favorites[
+            amount_per_page * page : amount_per_page * (page + 1)
+        ]:
+            favorites_list.append(get_title(favorite.titleid.pk))
+
+        # Devuelve la lista de favoritos
+        return JsonResponse(
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "favorites": favorites_list,
+            },
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+        )
+
+
+def get_pending(r):
+    if r.method == "GET":
+
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Se intenta obtener el token de la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
+
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
+        # Obtener lista de pendientes
+        pending = Pending.objects.filter(userid=token.userid).order_by("-addeddate")
+        pending_list = []
+
+        # Se obtiene el total de pendientes
+        total = pending.count()
+
+        # Se almacenan los datos de cada título en una lista
+        for item in pending[amount_per_page * page : amount_per_page * (page + 1)]:
+            pending_list.append(get_title(item.titleid.pk))
+
+        # Devuelve la lista de pendientes
+        return JsonResponse(
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "pending": pending_list,
+            },
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+        )
+
+
+def get_feed(r):
+    if r.method == "GET":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la base de datos
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
+
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
+        # Obtiene la lista de seguidos del usuario
+        followers = Followers.objects.filter(followerid=token.userid).values(
+            "followedid"
+        )
+
+        # Obtiene los ratings de los usuarios
+        ratings = Ratings.objects.filter(posterid__in=followers).order_by("-addeddate")
+
+        # Se obtiene el total de pendientes
+        total = ratings.count()
+
+        feed_data = []
+
+        # Obtiene los datos de los títulos
+        for rating in ratings[amount_per_page * page : amount_per_page * (page + 1)]:
+            entry = get_title(rating.titleid.pk)
+            entry["rating"] = rating.rating
+            entry["comment"] = rating.comment
+            entry["addeddate"] = rating.addeddate
+            entry["byUser"] = rating.posterid.username
+            feed_data.append(entry)
+
+        # Devuelve la lista de pendientes
+        return JsonResponse(
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "feed": feed_data,
+            },
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
         )
 
 
