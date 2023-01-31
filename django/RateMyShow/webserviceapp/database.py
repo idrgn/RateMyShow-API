@@ -4,7 +4,16 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg
 from django.utils.crypto import get_random_string
 
-from .models import Genres, Participants, Ratings, Titles, Tokens
+from .models import (
+    Favorites,
+    Genres,
+    Participants,
+    Pending,
+    Ratings,
+    Titles,
+    Tokens,
+    Users,
+)
 
 """Funciones de BBDD de RateMyShow
 
@@ -16,7 +25,7 @@ Métodos:
 """
 
 
-def get_title(title_id):
+def get_title(title_id, user: Users = None):
     try:
         # Obtiene el título
         title = Titles.objects.get(id=title_id)
@@ -91,6 +100,14 @@ def get_title(title_id):
         except Exception:
             pass
 
+    # Se comprueba si es favorito o pendiente
+    if user == None:
+        isFavorite = None
+        isPending = None
+    else:
+        isFavorite = Favorites.objects.filter(userid=user, titleid=title).exists()
+        isPending = Pending.objects.filter(userid=user, titleid=title).exists()
+
     # Se devuelve el diccionario
     return {
         "id": title.pk,
@@ -106,6 +123,8 @@ def get_title(title_id):
         "genres": genre_list,
         "crew": participant_list,
         "rating": rating["rating__avg"],
+        "isFavorite": isFavorite,
+        "isPending": isPending,
     }
 
 
