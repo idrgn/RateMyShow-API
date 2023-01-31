@@ -256,9 +256,9 @@ def search_register_user(r):
 
         # Se obtienen los resultados
         if query:
-            search = Users.objects.filter(Q(username__icontains=query))
+            search = Users.objects.filter(Q(username__icontains=query)).order_by("-registerdate")
         else:
-            search = Users.objects.all()
+            search = Users.objects.all().order_by("-registerdate")
 
         # Almacenar cantidad total
         total = search.count()
@@ -369,9 +369,10 @@ def sessions(r):
         # Devuelve los datos del usuario
         return JsonResponse(
             {
-                "userName": token.userid.username,
-                "avatarId": token.userid.avatar,
+                "username": token.userid.username,
                 "name": token.userid.name,
+                "surname": token.userid.surname,
+                "avatarId": token.userid.avatar,
             },
             json_dumps_params={"ensure_ascii": False},
             status=200,
@@ -557,8 +558,9 @@ def get_followers_by_name(r, username):
         ]:
             # Convierte el objeto dictionary a json
             dictionary = {
-                "name": follower.followerid.name,
                 "username": follower.followerid.username,
+                "name": follower.followerid.name,
+                "surname": follower.followerid.surname,
                 "avatarId": follower.followerid.avatarid.pk,
             }
 
@@ -600,8 +602,9 @@ def get_following_by_name(r, username):
         for user in following[amount_per_page * page : amount_per_page * (page + 1)]:
             # Convierte el objeto dictionary a json
             dictionary = {
-                "name": user.followedid.name,
                 "username": user.followedid.username,
+                "name": user.followedid.name,
+                "surname": user.followedid.surname,
                 "avatarId": user.followedid.avatarid.pk,
             }
 
