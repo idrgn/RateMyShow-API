@@ -106,7 +106,6 @@ def title_search(r):
             },
             json_dumps_params={"ensure_ascii": False},
             status=200,
-            safe=False,
         )
 
 
@@ -141,7 +140,6 @@ def best_rated(r):
             },
             json_dumps_params={"ensure_ascii": False},
             status=200,
-            safe=False,
         )
 
 
@@ -751,7 +749,6 @@ def latest(r):
             },
             json_dumps_params={"ensure_ascii": False},
             status=200,
-            safe=False,
         )
 
 
@@ -959,5 +956,4 @@ def get_user_ratings(r, username):
             },
             json_dumps_params={"ensure_ascii": False},
             status=200,
-            safe=False,
         )
