@@ -32,7 +32,7 @@ urlpatterns = [
     path("favorites", views.get_favorites),
     path("recommendations", views.recommendations),
     # Users
-    path("users", views.register_user),
+    path("users", views.search_register_user),
     path("users/<str:username>", views.get_user_by_name),
     path("users/<str:username>/followers", views.get_followers_by_name),
     path("users/<str:username>/following", views.get_following_by_name),

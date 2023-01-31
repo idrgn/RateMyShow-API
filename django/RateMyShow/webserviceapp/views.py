@@ -178,7 +178,7 @@ def get_random_title(r):
 
 
 @csrf_exempt
-def register_user(r):
+def search_register_user(r):
     if r.method == "POST":
         # Se intenta obtener el cuerpo de la petición
         try:
@@ -246,6 +246,46 @@ def register_user(r):
             {"sessionToken": token_string},
             json_dumps_params={"ensure_ascii": False},
             status=201,
+        )
+
+    elif r.method == "GET":
+        query = r.GET.get("query", None)
+
+        # Se obtiene la página actual
+        page = get_page(r)
+
+        # Se obtienen los resultados
+        if query:
+            search = Users.objects.filter(Q(username__icontains=query))
+        else:
+            search = Users.objects.all()
+
+        # Almacenar cantidad total
+        total = search.count()
+
+        # Se almacenan los datos de cada título en una lista
+        user_list = []
+
+        for user in search[amount_per_page * page : amount_per_page * (page + 1)]:
+            user_list.append(
+                {
+                    "username": user.username,
+                    "name": user.name,
+                    "surname": user.surname,
+                    "avatarId": user.avatarid.pk,
+                }
+            )
+
+        # Se devuelve la lista
+        return JsonResponse(
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "users": user_list,
+            },
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
         )
 
 
