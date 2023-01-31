@@ -42,6 +42,21 @@ def get_page(r):
     return page
 
 
+def get_token_user(r):
+    # Se intenta obtener el SessionToken de los headers
+    try:
+        session_token = r.headers["SessionToken"]
+    except Exception:
+        return None
+
+    # Intenta buscar el usuario en la BBDD
+    try:
+        token = Tokens.objects.get(token=session_token)
+        return token.userid
+    except ObjectDoesNotExist:
+        return None
+
+
 def get_most_common_elements(list):
     element_counts = {}
     for element in list:
@@ -77,8 +92,9 @@ def title_search(r):
 
         # Se almacenan los datos de cada título en una lista
         result_list = []
+        current_user = get_token_user(r)
         for title in search[amount_per_page * page : amount_per_page * (page + 1)]:
-            result_list.append(get_title(title.id))
+            result_list.append(get_title(title.id, current_user))
 
         # Se devuelve la lista
         return JsonResponse(
@@ -111,8 +127,9 @@ def best_rated(r):
 
         # Se almacenan los datos de cada título en una lista
         result_list = []
+        current_user = get_token_user(r)
         for title in titles[amount_per_page * page : amount_per_page * (page + 1)]:
-            result_list.append(get_title(title.id))
+            result_list.append(get_title(title.id, current_user))
 
         # Se devuelve la lista
         return JsonResponse(
@@ -132,7 +149,7 @@ def get_title_by_id(r, title_id):
     if r.method == "GET":
         # Obtiene el título
         try:
-            response = get_title(title_id)
+            response = get_title(title_id, get_token_user(r))
         except Exception:
             response = None
 
@@ -156,7 +173,7 @@ def get_random_title(r):
 
         # Devuelve los datos
         return JsonResponse(
-            get_title(random_pk),
+            get_title(random_pk, get_token_user(r)),
             json_dumps_params={"ensure_ascii": False},
             status=200,
         )
@@ -369,15 +386,16 @@ def get_user_by_name(r, username):
         # Lista de favoritos
         favorites = Favorites.objects.filter(userid=user).order_by("-addeddate")
         favorites_list = []
+        current_user = get_token_user(r)
         for favorite in favorites[0:5]:
-            favorites_list.append(get_title(favorite.titleid.pk))
+            favorites_list.append(get_title(favorite.titleid.pk, current_user))
         user_dict["favorites"] = favorites_list
 
         # Lista de pendientes
         pendings = Pending.objects.filter(userid=user).order_by("-addeddate")
         pending_list = []
         for pending in pendings[0:5]:
-            pending_list.append(get_title(pending.titleid.pk))
+            pending_list.append(get_title(pending.titleid.pk, current_user))
         user_dict["pending"] = pending_list
 
         return JsonResponse(
@@ -591,10 +609,11 @@ def get_favorites(r):
         total = favorites.count()
 
         # Se almacenan los datos de cada título en una lista
+        current_user = get_token_user(r)
         for favorite in favorites[
             amount_per_page * page : amount_per_page * (page + 1)
         ]:
-            favorites_list.append(get_title(favorite.titleid.pk))
+            favorites_list.append(get_title(favorite.titleid.pk, current_user))
 
         # Devuelve la lista de favoritos
         return JsonResponse(
@@ -635,8 +654,9 @@ def get_pending(r):
         total = pending.count()
 
         # Se almacenan los datos de cada título en una lista
+        current_user = get_token_user(r)
         for item in pending[amount_per_page * page : amount_per_page * (page + 1)]:
-            pending_list.append(get_title(item.titleid.pk))
+            pending_list.append(get_title(item.titleid.pk, current_user))
 
         # Devuelve la lista de pendientes
         return JsonResponse(
@@ -679,11 +699,11 @@ def get_feed(r):
         # Se obtiene el total de pendientes
         total = ratings.count()
 
-        feed_data = []
-
         # Obtiene los datos de los títulos
+        feed_data = []
+        current_user = get_token_user(r)
         for rating in ratings[amount_per_page * page : amount_per_page * (page + 1)]:
-            entry = get_title(rating.titleid.pk)
+            entry = get_title(rating.titleid.pk, current_user)
             entry["rating"] = rating.rating
             entry["comment"] = rating.comment
             entry["addeddate"] = rating.addeddate
@@ -717,8 +737,9 @@ def latest(r):
 
         # Se almacenan los datos de cada título en una lista
         result_list = []
+        current_user = get_token_user(r)
         for title in search[amount_per_page * page : amount_per_page * (page + 1)]:
-            result_list.append(get_title(title.id))
+            result_list.append(get_title(title.id, current_user))
 
         # Se devuelve la lista
         return JsonResponse(
@@ -769,8 +790,9 @@ def recommendations(r):
 
             # Se obtienen los datos de 5 títulos
             title_list = Genres.objects.filter(genreid=genre).values("titleid")
+            current_user = get_token_user(r)
             for title in title_list[0:5]:
-                title_data_list.append(get_title(title["titleid"]))
+                title_data_list.append(get_title(title["titleid"], current_user))
 
             # Se añade el género y los títulos a la respuesta.
             response.append(
@@ -917,10 +939,11 @@ def get_user_ratings(r, username):
         # Almacenar cantidad total
         total = ratings.count()
 
-        title_data = []
         # Se obtienen los datos de cada títiulo
+        title_data = []
+        current_user = get_token_user(r)
         for rating in ratings[amount_per_page * page : amount_per_page * (page + 1)]:
-            title = get_title(rating.titleid.pk)
+            title = get_title(rating.titleid.pk, current_user)
             # Se añade el rating del usuario
             title["rating"] = rating.rating
             # Se añade a la lista
