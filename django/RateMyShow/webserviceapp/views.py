@@ -847,3 +847,165 @@ def recommendations(r):
             status=200,
             safe=False,
         )
+
+
+def rating(r, title_id):
+    if r.method == "PUT":
+        # Se intenta obtener el cuerpo de la petición
+        try:
+            data = json.loads(r.body)
+
+            # Se comprueba que los datos están dentro del límite
+            if data["rating"] > 5.0:
+                rating = 5.0
+            elif data["rating"] < 0.0:
+                rating = 0.0
+
+            # Si el comentario no es un string, se añade un String vacío
+            if not isinstance(data["comment"], str):
+                data["comment"] = None
+
+        except json.decoder.JSONDecodeError:
+            return JsonResponse({"message": "Bad request"}, status=400)
+
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Intenta buscar el título en la BBDD
+        try:
+            title = Titles.objects.get(pk=title_id)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se crea el rating
+        rating = Ratings()
+        rating.posterid = token.userid
+        rating.titleid = title
+        rating.comment = data["comment"]
+        rating.rating = data["rating"]
+        rating.addeddate = datetime.datetime.now()
+        rating.save()
+
+        # Respuesta
+        return JsonResponse({"message": "OK"}, status=200)
+
+
+def follow_user(r, username):
+    if r.method == "PUT":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Intenta obtener el usuario a seguir
+        try:
+            followed = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se añade a la BBDD
+        follower = Followers()
+        follower.followedid = followed
+        follower.followerid = token.userid
+        # follower.followeddate = datetime.datetime.now()
+        follower.save()
+
+        # Respuesta
+        return JsonResponse({"message": "OK"}, status=200)
+
+    if r.method == "DELETE":
+        # Se intenta obtener el SessionToken de los headers
+        try:
+            session_token = r.headers["SessionToken"]
+        except Exception:
+            return JsonResponse({"message": "Unauthorized"}, status=401)
+
+        # Intenta buscar el usuario en la BBDD
+        try:
+            token = Tokens.objects.get(token=session_token)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Intenta obtener el usuario a seguir
+        try:
+            followed = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Obtiene el objeto de la tabla Followers
+        try:
+            result = Followers.objects.get(followerid=token.userid, followedid=followed)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se elimina de la BBDD
+        result.delete()
+
+        # Respuesta
+        return JsonResponse({"message": "OK"}, status=200)
+
+
+def get_user_ratings(r, username):
+    if r.method == "GET":
+        # Se intenta obtener el Usuario
+        try:
+            user = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se obtiene la página actual
+        page = r.GET.get("page", 0)
+
+        # Si es string, intenta convertirla a número
+        if isinstance(page, str):
+            try:
+                page = int(page)
+            except Exception:
+                page = 0
+
+        # Se obtiene los ratings del usuario
+        ratings = Ratings.objects.filter(posterid=user).order_by("-addeddate")
+
+        # Almacenar cantidad total
+        total = ratings.count()
+
+        # Cantidad de resultados por página
+        amount_per_page = 15
+
+        title_data = []
+        # Se obtienen los datos de cada títiulo
+        for rating in ratings[amount_per_page * page : amount_per_page * (page + 1)]:
+            title = get_title(rating.titleid.pk)
+            # Se añade el rating del usuario
+            title["rating"] = rating.rating
+            # Se añade a la lista
+            title_data.append(title)
+
+        # Respuesta
+        return JsonResponse(
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "ratings": title_data,
+            },
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
