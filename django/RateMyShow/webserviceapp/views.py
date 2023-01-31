@@ -256,7 +256,9 @@ def search_register_user(r):
 
         # Se obtienen los resultados
         if query:
-            search = Users.objects.filter(Q(username__icontains=query)).order_by("-registerdate")
+            search = Users.objects.filter(Q(username__icontains=query)).order_by(
+                "-registerdate"
+            )
         else:
             search = Users.objects.all().order_by("-registerdate")
 
@@ -444,6 +446,7 @@ def get_user_by_name(r, username):
         )
 
 
+@csrf_exempt
 def favorite_by_id(r, title_id):
     if r.method == "PUT":
         # Se intenta obtener el SessionToken de los headers
@@ -489,6 +492,7 @@ def favorite_by_id(r, title_id):
         return JsonResponse({"message": "OK"}, status=200)
 
 
+@csrf_exempt
 def pending_by_id(r, title_id):
     if r.method == "PUT":
         # Se intenta obtener el SessionToken de los headers
@@ -850,6 +854,7 @@ def recommendations(r):
         )
 
 
+@csrf_exempt
 def rating(r, title_id):
     if r.method == "PUT":
         # Se intenta obtener el cuerpo de la petición
@@ -900,6 +905,7 @@ def rating(r, title_id):
         return JsonResponse({"message": "OK"}, status=200)
 
 
+@csrf_exempt
 def follow_user(r, username):
     if r.method == "PUT":
         # Se intenta obtener el SessionToken de los headers
