@@ -24,6 +24,24 @@ from .models import (
 """Vistas de RateMyShow"""
 
 
+# Cantidad de resultados por página
+amount_per_page = 15
+
+
+def get_page(r):
+    # Se obtiene la página actual
+    page = r.GET.get("page", 0)
+
+    # Si es string, intenta convertirla a número
+    if isinstance(page, str):
+        try:
+            page = int(page)
+        except Exception:
+            page = 0
+
+    return page
+
+
 def get_most_common_elements(list):
     element_counts = {}
     for element in list:
@@ -47,14 +65,7 @@ def title_search(r):
             return JsonResponse({"message": "Not found"}, status=404)
 
         # Se obtiene la página actual
-        page = r.GET.get("page", 0)
-
-        # Si es string, intenta convertirla a número
-        if isinstance(page, str):
-            try:
-                page = int(page)
-            except Exception:
-                page = 0
+        page = get_page(r)
 
         # Se obtienen los resultados
         search = Titles.objects.filter(
@@ -63,9 +74,6 @@ def title_search(r):
 
         # Almacenar cantidad total
         total = search.count()
-
-        # Cantidad de resultados por página
-        amount_per_page = 15
 
         # Se almacenan los datos de cada título en una lista
         result_list = []
@@ -89,14 +97,7 @@ def title_search(r):
 def best_rated(r):
     if r.method == "GET":
         # Se obtiene la página actual
-        page = r.GET.get("page", 0)
-
-        # Si es string, intenta convertirla a número
-        if isinstance(page, str):
-            try:
-                page = int(page)
-            except Exception:
-                page = 0
+        page = get_page(r)
 
         # Se obtienen los resultados
         titles = (
@@ -107,9 +108,6 @@ def best_rated(r):
 
         # Almacenar cantidad total
         total = titles.count()
-
-        # Cantidad de resultados por página
-        amount_per_page = 15
 
         # Se almacenan los datos de cada título en una lista
         result_list = []
@@ -489,17 +487,7 @@ def get_followers_by_name(r, username):
             return JsonResponse({"message": "Not found"}, status=404)
 
         # Se obtiene la página actual
-        page = r.GET.get("page", 0)
-
-        # Si es string, intenta convertirla a número
-        if isinstance(page, str):
-            try:
-                page = int(page)
-            except Exception:
-                page = 0
-
-        # Cantidad de resultados por página
-        amount_per_page = 15
+        page = get_page(r)
 
         # Obtiene todos los seguidores del usuario
         followers = Followers.objects.filter(followedid=user)
@@ -544,17 +532,7 @@ def get_following_by_name(r, username):
             return JsonResponse({"message": "Not found"}, status=404)
 
         # Se obtiene la página actual
-        page = r.GET.get("page", 0)
-
-        # Si es string, intenta convertirla a número
-        if isinstance(page, str):
-            try:
-                page = int(page)
-            except Exception:
-                page = 0
-
-        # Cantidad de resultados por página
-        amount_per_page = 15
+        page = get_page(r)
 
         # Obtiene todos los usuarios a los que sigue el usuario
         following = Followers.objects.filter(followerid=user)
@@ -603,17 +581,7 @@ def get_favorites(r):
             return JsonResponse({"message": "Not found"}, status=404)
 
         # Se obtiene la página actual
-        page = r.GET.get("page", 0)
-
-        # Si es string, intenta convertirla a número
-        if isinstance(page, str):
-            try:
-                page = int(page)
-            except Exception:
-                page = 0
-
-        # Cantidad de resultados por página
-        amount_per_page = 15
+        page = get_page(r)
 
         # Obtener lista de favoritos
         favorites = Favorites.objects.filter(userid=token.userid).order_by("-addeddate")
@@ -657,17 +625,7 @@ def get_pending(r):
             return JsonResponse({"message": "Not found"}, status=404)
 
         # Se obtiene la página actual
-        page = r.GET.get("page", 0)
-
-        # Si es string, intenta convertirla a número
-        if isinstance(page, str):
-            try:
-                page = int(page)
-            except Exception:
-                page = 0
-
-        # Cantidad de resultados por página
-        amount_per_page = 15
+        page = get_page(r)
 
         # Obtener lista de pendientes
         pending = Pending.objects.filter(userid=token.userid).order_by("-addeddate")
@@ -708,17 +666,7 @@ def get_feed(r):
             return JsonResponse({"message": "Not found"}, status=404)
 
         # Se obtiene la página actual
-        page = r.GET.get("page", 0)
-
-        # Si es string, intenta convertirla a número
-        if isinstance(page, str):
-            try:
-                page = int(page)
-            except Exception:
-                page = 0
-
-        # Cantidad de resultados por página
-        amount_per_page = 15
+        page = get_page(r)
 
         # Obtiene la lista de seguidos del usuario
         followers = Followers.objects.filter(followerid=token.userid).values(
@@ -759,22 +707,13 @@ def latest(r):
     if r.method == "GET":
 
         # Se obtiene la página actual
-        page = r.GET.get("page", 0)
+        page = get_page(r)
 
-        # Si es string, intenta convertirla a número
-        if isinstance(page, str):
-            try:
-                page = int(page)
-            except Exception:
-                page = 0
         # Se obtienen los títulos ordenados por fecha.
         search = Titles.objects.all().order_by("-startyear")
 
         # Almacenar cantidad total
         total = search.count()
-
-        # Cantidad de resultados por página
-        amount_per_page = 15
 
         # Se almacenan los datos de cada título en una lista
         result_list = []
@@ -970,23 +909,13 @@ def get_user_ratings(r, username):
             return JsonResponse({"message": "Not found"}, status=404)
 
         # Se obtiene la página actual
-        page = r.GET.get("page", 0)
-
-        # Si es string, intenta convertirla a número
-        if isinstance(page, str):
-            try:
-                page = int(page)
-            except Exception:
-                page = 0
+        page = get_page(r)
 
         # Se obtiene los ratings del usuario
         ratings = Ratings.objects.filter(posterid=user).order_by("-addeddate")
 
         # Almacenar cantidad total
         total = ratings.count()
-
-        # Cantidad de resultados por página
-        amount_per_page = 15
 
         title_data = []
         # Se obtienen los datos de cada títiulo
