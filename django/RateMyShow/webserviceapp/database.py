@@ -58,7 +58,7 @@ def get_title(title_id, user: Users = None):
                 "name": rating.posterid.name,
                 "surname": rating.posterid.surname,
                 "avatarId": rating.posterid.avatarid.pk,
-                "comment": rating.coment,
+                "comment": rating.comment,
                 "rating": rating.rating,
                 "addedDate": rating.addeddate,
             }
