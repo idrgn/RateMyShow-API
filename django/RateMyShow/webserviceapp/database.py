@@ -46,9 +46,23 @@ def get_title(title_id, user: Users = None):
 
     # Se obtienen las puntuaciones
     all_ratings = Ratings.objects.filter(titleid=title_id)
-    rating = all_ratings.aggregate(Avg("rating"))
+    rating_average = all_ratings.aggregate(Avg("rating"))
     rating_count = all_ratings.count()
 
+    # Se almacenan los últimos 10 comentarios
+    last_comments = []
+    for rating in all_ratings.order_by("-addeddate")[0:10]:
+        last_comments.append(
+            {
+                "username": rating.posterid.username,
+                "name": rating.posterid.name,
+                "surname": rating.posterid.surname,
+                "avatarId": rating.posterid.avatarid.pk,
+                "comment": rating.coment,
+                "rating": rating.rating,
+                "addedDate": rating.addeddate,
+            }
+        )
     # Se obtienen los participantes
     participants = Participants.objects.filter(titleid=title_id)
 
@@ -124,8 +138,9 @@ def get_title(title_id, user: Users = None):
         "description": title.description,
         "genres": genre_list,
         "crew": participant_list,
-        "rating": rating["rating__avg"],
+        "rating": rating_average["rating__avg"],
         "totalRatings": rating_count,
+        "lastComments": last_comments,
         "isFavorite": isFavorite,
         "isPending": isPending,
     }
