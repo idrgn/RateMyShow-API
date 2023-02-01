@@ -45,7 +45,9 @@ def get_title(title_id, user: Users = None):
         genre_list.append(genre.genreid.genre.rstrip())
 
     # Se obtienen las puntuaciones
-    rating = Ratings.objects.filter(titleid=title_id).aggregate(Avg("rating"))
+    all_ratings = Ratings.objects.filter(titleid=title_id)
+    rating = all_ratings.aggregate(Avg("rating"))
+    rating_count = all_ratings.count()
 
     # Se obtienen los participantes
     participants = Participants.objects.filter(titleid=title_id)
@@ -123,6 +125,7 @@ def get_title(title_id, user: Users = None):
         "genres": genre_list,
         "crew": participant_list,
         "rating": rating["rating__avg"],
+        "totalRatings": rating_count,
         "isFavorite": isFavorite,
         "isPending": isPending,
     }
