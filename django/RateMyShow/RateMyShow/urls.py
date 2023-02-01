@@ -46,5 +46,5 @@ urlpatterns = [
     path("titles/<str:title_id>/pending", views.pending_by_id),
     path("titles/<str:title_id>/rating", views.rating),
     # Imágenes
-    path("pfp/<int:image_id>", views.get_profile_picture),
+    path("pfp/<str:name>", views.get_profile_picture),
 ]
