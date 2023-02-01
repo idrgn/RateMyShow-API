@@ -17,6 +17,7 @@ from .models import (
     Pending,
     Ratings,
     Titles,
+    Titletypes,
     Tokens,
     Users,
 )
@@ -770,29 +771,58 @@ def get_feed(r):
 
 def latest(r):
     if r.method == "GET":
-
         # Se obtiene la página actual
         page = get_page(r)
 
-        # Se obtienen los títulos ordenados por fecha.
-        search = Titles.objects.all().order_by("-startyear")
+        # Se obtiene el tipo de título de película
+        try:
+            movie_type = Titletypes.objects.filter(name__icontains="movie").values("id")
+        except Titletypes.DoesNotExist:
+            return JsonResponse(
+                {"error": "No se encontró el tipo de título 'movie'"}, status=404
+            )
 
-        # Almacenar cantidad total
-        total = search.count()
+        # Se obtiene el tipo de título de serie
+        series_type = Titletypes.objects.filter(name__icontains="serie").values("id")
 
-        # Se almacenan los datos de cada título en una lista
-        result_list = []
+        # Se obtienen las películas ordenadas por fecha.
+        movies = Titles.objects.filter(titletype__in=movie_type).order_by("-startyear")
+
+        # Se obtienen las series ordenadas por fecha.
+        series = Titles.objects.filter(titletype__in=series_type).order_by("-startyear")
+
+        # Almacenar cantidad total de películas
+        total_movies = movies.count()
+
+        # Almacenar cantidad total de series
+        total_series = series.count()
+
+        # Se almacenan los datos de cada título de película en una lista
+        result_list_movies = []
         current_user = get_token_user(r)
-        for title in search[amount_per_page * page : amount_per_page * (page + 1)]:
-            result_list.append(get_title(title.id, current_user))
+        for title in movies[amount_per_page * page : amount_per_page * (page + 1)]:
+            result_list_movies.append(get_title(title.id, current_user))
+
+        # Se almacenan los datos de cada título de serie en una lista
+        result_list_series = []
+        for title in series[amount_per_page * page : amount_per_page * (page + 1)]:
+            result_list_series.append(get_title(title.id, current_user))
 
         # Se devuelve la lista
         return JsonResponse(
             {
-                "total": total,
-                "pages": int(math.ceil(total / amount_per_page)),
-                "current": page,
-                "result": result_list,
+                "movies": {
+                    "total": total_movies,
+                    "pages": int(math.ceil(total_movies / amount_per_page)),
+                    "current": page,
+                    "result": result_list_movies,
+                },
+                "series": {
+                    "total": total_series,
+                    "pages": int(math.ceil(total_series / amount_per_page)),
+                    "current": page,
+                    "result": result_list_series,
+                },
             },
             json_dumps_params={"ensure_ascii": False},
             status=200,
