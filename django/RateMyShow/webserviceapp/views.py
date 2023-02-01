@@ -753,7 +753,13 @@ def get_feed(r):
             entry["rating"] = rating.rating
             entry["comment"] = rating.comment
             entry["addeddate"] = rating.addeddate
-            entry["byUser"] = rating.posterid.username
+            entry["user"] = {
+                "username": rating.posterid.username,
+                "name": rating.posterid.name,
+                "surname": rating.posterid.surname,
+                "avatarId": rating.poterid.avatarid,
+            }
+
             feed_data.append(entry)
 
         # Devuelve la lista de pendientes
