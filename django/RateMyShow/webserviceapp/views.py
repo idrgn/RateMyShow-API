@@ -5,8 +5,10 @@ from random import choice
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg, Q
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+
+from RateMyShow import settings
 
 from .database import get_new_token, get_title
 from .models import (
@@ -1042,3 +1044,8 @@ def get_user_ratings(r, username):
             json_dumps_params={"ensure_ascii": False},
             status=200,
         )
+
+
+def get_profile_picture(r, image_id):
+    image_data = open(f"{settings.BASE_DIR}/images/{image_id}.png", "rb").read()
+    return HttpResponse(image_data, content_type="image/png")
