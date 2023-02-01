@@ -757,7 +757,7 @@ def get_feed(r):
                 "username": rating.posterid.username,
                 "name": rating.posterid.name,
                 "surname": rating.posterid.surname,
-                "avatarId": rating.poterid.avatarid,
+                "avatarId": rating.posterid.avatarid.pk,
             }
 
             feed_data.append(entry)
