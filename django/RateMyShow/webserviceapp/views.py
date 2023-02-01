@@ -1048,9 +1048,16 @@ def get_user_ratings(r, username):
 
 def get_profile_picture(r, name):
     try:
-        image_data = open(
-            f"{settings.BASE_DIR}/images/profile/{name}.png", "rb"
-        ).read()
+        image_data = open(f"{settings.BASE_DIR}/images/profile/{name}.png", "rb").read()
+    except FileNotFoundError:
+        return JsonResponse({"message": "Not found"}, status=404)
+
+    return HttpResponse(image_data, content_type="image/png")
+
+
+def get_image(r, name):
+    try:
+        image_data = open(f"{settings.BASE_DIR}/images/general/{name}.png", "rb").read()
     except FileNotFoundError:
         return JsonResponse({"message": "Not found"}, status=404)
 

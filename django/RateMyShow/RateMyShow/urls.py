@@ -47,4 +47,5 @@ urlpatterns = [
     path("titles/<str:title_id>/rating", views.rating),
     # Imágenes
     path("pfp/<str:name>", views.get_profile_picture),
+    path("img/<str:name>", views.get_image),
 ]
