@@ -937,7 +937,7 @@ def rating(r, title_id):
         ).exists()
 
         # No permite añadir mas de 1 rating
-        if has_rating():
+        if has_rating:
             return JsonResponse(
                 {"message": "User has already rated"},
                 status=409,
