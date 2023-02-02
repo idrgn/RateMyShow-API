@@ -212,7 +212,10 @@ def get_user(username, logged_user: Users = None):
             return None
 
     # Comprueba si el usuario loggeado es el mismo que el buscado
-    user_matches = user.pk == logged_user.pk
+    if logged_user:
+        user_matches = user.pk == logged_user.pk
+    else:
+        user_matches = False
 
     # Se crea el diccionario de la respuesta
     result = {
@@ -223,16 +226,15 @@ def get_user(username, logged_user: Users = None):
         "surname": user.surname,
         "avatarId": user.avatarid.pk,
         "registerDate": user.registerdate,
+        "isFollowed": None,
+        "isFollower": None,
     }
 
     if user_matches:
-        # Datos personales
+        # Datos extra
         result["email"] = user.email
         result["phone"] = user.phone
-        # Es seguido / seguidor
-        result["isFollowed"] = None
-        result["isFollower"] = None
-    else:
+    elif logged_user:
         # Es seguido
         result["isFollowed"] = Followers.objects.filter(
             followerid=logged_user, followedid=user
