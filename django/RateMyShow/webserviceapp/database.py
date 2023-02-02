@@ -8,6 +8,7 @@ from django.utils.crypto import get_random_string
 
 from .models import (
     Favorites,
+    Followers,
     Genres,
     Participants,
     Pending,
@@ -192,3 +193,69 @@ def get_new_token():
 
     # Devuelve el token generado
     return token_string
+
+
+def get_user(username, logged_user: Users = None):
+    # Devuelve datos de un usuario
+    if not isinstance(username, Users):
+        user = username
+    else:
+        try:
+            # Obtiene el usuario
+            user = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            # Si genera un error al obtener el usuario, devuelve none
+            return None
+
+    # Comprueba si el usuario loggeado es el mismo que el buscado
+    user_matches = user.pk == logged_user.pk
+
+    # Se crea el diccionario de la respuesta
+    result = {
+        "isOwnUser": user_matches,
+        "username": user.username,
+        "birthdate": user.birthdate,
+        "name": user.name,
+        "surname": user.surname,
+        "avatarId": user.avatarid.pk,
+        "registerDate": user.registerdate,
+    }
+
+    if user_matches:
+        # Datos personales
+        result["email"] = user.email
+        result["phone"] = user.phone
+        # Es seguido / seguidor
+        result["isFollowed"] = None
+        result["isFollower"] = None
+    else:
+        # Es seguido
+        result["isFollowed"] = Followers.objects.filter(
+            followerid=logged_user, followedid=user
+        ).exists()
+        # Es seguidor
+        result["isFollower"] = Followers.objects.filter(
+            followedid=logged_user, followerid=user
+        ).exists()
+
+    # Número de seguidores y seguidos
+    followers = Followers.objects.filter(followedid=user).count()
+    result["followers"] = followers
+    followed = Followers.objects.filter(followerid=user).count()
+    result["following"] = followed
+
+    # Lista de favoritos
+    favorites = Favorites.objects.filter(userid=user).order_by("-addeddate")
+    favorites_list = []
+    for favorite in favorites[0:5]:
+        favorites_list.append(get_title(favorite.titleid.pk, logged_user))
+    result["favorites"] = favorites_list
+
+    # Lista de pendientes
+    pendings = Pending.objects.filter(userid=user).order_by("-addeddate")
+    pending_list = []
+    for pending in pendings[0:5]:
+        pending_list.append(get_title(pending.titleid.pk, logged_user))
+    result["pending"] = pending_list
+
+    return result

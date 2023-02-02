@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from RateMyShow import settings
 
-from .database import get_new_token, get_title
+from .database import get_new_token, get_title, get_user
 from .models import (
     Avatars,
     Favorites,
@@ -271,16 +271,9 @@ def search_register_user(r):
 
         # Se almacenan los datos de cada título en una lista
         user_list = []
-
+        current_user = get_token_user(r)
         for user in search[amount_per_page * page : amount_per_page * (page + 1)]:
-            user_list.append(
-                {
-                    "username": user.username,
-                    "name": user.name,
-                    "surname": user.surname,
-                    "avatarId": user.avatarid.pk,
-                }
-            )
+            user_list.append(get_user(user, current_user))
 
         # Se devuelve la lista
         return JsonResponse(
@@ -374,12 +367,7 @@ def sessions(r):
 
         # Devuelve los datos del usuario
         return JsonResponse(
-            {
-                "username": token.userid.username,
-                "name": token.userid.name,
-                "surname": token.userid.surname,
-                "avatarId": token.userid.avatarid.pk,
-            },
+            get_user(token.userid, get_token_user(r)),
             json_dumps_params={"ensure_ascii": False},
             status=200,
         )
@@ -400,51 +388,8 @@ def get_user_by_name(r, username):
         except Exception:
             return JsonResponse({"message": "Not found"}, status=404)
 
-        # Se comprueba que es el propio usuario
-        user_matches = Tokens.objects.filter(
-            Q(token=sesion_token) & Q(userid=user.id)
-        ).exists()
-
-        # Se crea el diccionario
-        user_dict = {
-            "isOwnUser": user_matches,
-            "username": user.username,
-            "birthdate": user.birthdate,
-            "name": user.name,
-            "surname": user.surname,
-            "avatarId": user.avatarid.pk,
-            "registerDate": user.registerdate,
-        }
-
-        # Si es el propio usuario se añaden datos extra.
-        if user_matches:
-            user_dict["email"] = user.email
-            user_dict["phone"] = user.phone
-
-        # Número de seguidores y seguidos
-        followers = Followers.objects.filter(followedid=user).count()
-        user_dict["followers"] = followers
-
-        followed = Followers.objects.filter(followerid=user).count()
-        user_dict["following"] = followed
-
-        # Lista de favoritos
-        favorites = Favorites.objects.filter(userid=user).order_by("-addeddate")
-        favorites_list = []
-        current_user = get_token_user(r)
-        for favorite in favorites[0:5]:
-            favorites_list.append(get_title(favorite.titleid.pk, current_user))
-        user_dict["favorites"] = favorites_list
-
-        # Lista de pendientes
-        pendings = Pending.objects.filter(userid=user).order_by("-addeddate")
-        pending_list = []
-        for pending in pendings[0:5]:
-            pending_list.append(get_title(pending.titleid.pk, current_user))
-        user_dict["pending"] = pending_list
-
         return JsonResponse(
-            user_dict,
+            get_user(user, get_token_user(r)),
             json_dumps_params={"ensure_ascii": False},
             status=200,
         )
@@ -561,16 +506,12 @@ def get_followers_by_name(r, username):
         total = followers.count()
 
         follower_list = []
+        current_user = get_token_user(r)
         for follower in followers[
             amount_per_page * page : amount_per_page * (page + 1)
         ]:
             # Convierte el objeto dictionary a json
-            dictionary = {
-                "username": follower.followerid.username,
-                "name": follower.followerid.name,
-                "surname": follower.followerid.surname,
-                "avatarId": follower.followerid.avatarid.pk,
-            }
+            dictionary = get_user(follower.followerid, current_user)
 
             # Se añade dictionary
             follower_list.append(dictionary)
@@ -607,17 +548,10 @@ def get_following_by_name(r, username):
         total = following.count()
 
         following_list = []
+        current_user = get_token_user(r)
         for user in following[amount_per_page * page : amount_per_page * (page + 1)]:
-            # Convierte el objeto dictionary a json
-            dictionary = {
-                "username": user.followedid.username,
-                "name": user.followedid.name,
-                "surname": user.followedid.surname,
-                "avatarId": user.followedid.avatarid.pk,
-            }
-
             # Se añade dictionary
-            following_list.append(dictionary)
+            following_list.append(get_user(user, current_user))
 
         # Devuelve la lista de seguidos
         return JsonResponse(
@@ -758,13 +692,7 @@ def get_feed(r):
             entry["rating"] = rating.rating
             entry["comment"] = rating.comment
             entry["addeddate"] = rating.addeddate
-            entry["user"] = {
-                "username": rating.posterid.username,
-                "name": rating.posterid.name,
-                "surname": rating.posterid.surname,
-                "avatarId": rating.posterid.avatarid.pk,
-            }
-
+            entry["user"] = get_user(rating.posterid, current_user)
             feed_data.append(entry)
 
         # Devuelve la lista de pendientes
