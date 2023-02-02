@@ -382,7 +382,7 @@ def get_user_by_name(r, username):
             return JsonResponse({"message": "Not found"}, status=404)
 
         return JsonResponse(
-            get_user(user, get_token_user(r)),
+            get_user(user, get_token_user(r), get_fav_pending=True),
             json_dumps_params={"ensure_ascii": False},
             status=200,
         )

@@ -25,10 +25,12 @@ Funciones de ayuda encargadas de obtener datos de la BBDD que se usarían en var
 Métodos:
  - get_title: obtiene los datos procesados de un título
  - get_new_token: obtiene un token de sesión de usuario no existente en la BBDD
+ - get_user: obtiene los datos procesados de un usuario
 """
 
 
 def simplify_url(url):
+    # Elimina los parámetros extra de las URLs de Covers
     target = "_V1_"
     start = url.find(target)
     if start == -1:
@@ -199,7 +201,7 @@ def get_new_token():
     return token_string
 
 
-def get_user(username, logged_user: Users = None):
+def get_user(username, logged_user: Users = None, get_fav_pending: bool = False):
     # Devuelve datos de un usuario
     if isinstance(username, Users):
         user = username
@@ -250,18 +252,19 @@ def get_user(username, logged_user: Users = None):
     followed = Followers.objects.filter(followerid=user).count()
     result["following"] = followed
 
-    # Lista de favoritos
-    favorites = Favorites.objects.filter(userid=user).order_by("-addeddate")
-    favorites_list = []
-    for favorite in favorites[0:5]:
-        favorites_list.append(get_title(favorite.titleid.pk, logged_user))
-    result["favorites"] = favorites_list
+    if get_fav_pending:
+        # Lista de favoritos
+        favorites = Favorites.objects.filter(userid=user).order_by("-addeddate")
+        favorites_list = []
+        for favorite in favorites[0:5]:
+            favorites_list.append(get_title(favorite.titleid.pk, logged_user))
+        result["favorites"] = favorites_list
 
-    # Lista de pendientes
-    pendings = Pending.objects.filter(userid=user).order_by("-addeddate")
-    pending_list = []
-    for pending in pendings[0:5]:
-        pending_list.append(get_title(pending.titleid.pk, logged_user))
-    result["pending"] = pending_list
+        # Lista de pendientes
+        pendings = Pending.objects.filter(userid=user).order_by("-addeddate")
+        pending_list = []
+        for pending in pendings[0:5]:
+            pending_list.append(get_title(pending.titleid.pk, logged_user))
+        result["pending"] = pending_list
 
     return result
