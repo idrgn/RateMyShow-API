@@ -38,12 +38,16 @@ def simplify_url(url):
 
 
 def get_title(title_id, user: Users = None):
-    try:
-        # Obtiene el título
-        title = Titles.objects.get(id=title_id)
-    except ObjectDoesNotExist:
-        # Si genera un error al obtener el título, revuelve none
-        return None
+    # Devuelve los datos de un título
+    if isinstance(title_id, Titles):
+        title = title_id
+    else:
+        try:
+            # Obtiene el título
+            title = Titles.objects.get(id=title_id)
+        except ObjectDoesNotExist:
+            # Si genera un error al obtener el título, revuelve none
+            return None
 
     # Se obtiene el tipo de título
     title_type = title.titletype.name.rstrip()
