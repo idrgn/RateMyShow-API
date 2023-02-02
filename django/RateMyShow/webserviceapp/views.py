@@ -908,7 +908,7 @@ def rating(r, title_id):
 
             # Si el comentario no es un string, se añade un String vacío
             if not isinstance(data["comment"], str):
-                data["comment"] = None
+                data["comment"] = "Sin comentario"
 
         except json.decoder.JSONDecodeError:
             return JsonResponse({"message": "Bad request"}, status=400)
@@ -930,6 +930,18 @@ def rating(r, title_id):
             title = Titles.objects.get(pk=title_id)
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
+
+        # Comprueba que el usuario ya no tenga un rating
+        has_rating = Ratings.objects.filter(
+            titleid=title, posterid=token.userid
+        ).exists()
+
+        # No permite añadir mas de 1 rating
+        if has_rating():
+            return JsonResponse(
+                {"message": "User has already rated"},
+                status=409,
+            )
 
         # Se crea el rating
         rating = Ratings()
