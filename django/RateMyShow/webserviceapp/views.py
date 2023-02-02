@@ -378,7 +378,7 @@ def sessions(r):
                 "username": token.userid.username,
                 "name": token.userid.name,
                 "surname": token.userid.surname,
-                "avatarId": token.userid.avatar.pk,
+                "avatarId": token.userid.avatarid.pk,
             },
             json_dumps_params={"ensure_ascii": False},
             status=200,
