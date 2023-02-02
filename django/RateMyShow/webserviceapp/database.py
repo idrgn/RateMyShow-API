@@ -27,6 +27,15 @@ Métodos:
 """
 
 
+def simplify_url(url):
+    target = "_V1_"
+    start = url.find(target)
+    if start == -1:
+        return url
+    end = url.rfind("_.", start) + 2
+    return url[: start + len(target)] + url[end:]
+
+
 def get_title(title_id, user: Users = None):
     try:
         # Obtiene el título
@@ -122,7 +131,7 @@ def get_title(title_id, user: Users = None):
                 try:
                     img_tag = soup.find("img", class_="ipc-image")
                     img_src = img_tag["src"]
-                    title.cover = img_src
+                    title.cover = simplify_url(img_src)
                     title.save()
                 except Exception:
                     pass
