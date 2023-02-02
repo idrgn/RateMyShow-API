@@ -120,9 +120,11 @@ def get_title(title_id, user: Users = None):
     if user == None:
         isFavorite = None
         isPending = None
+        isRated = None
     else:
         isFavorite = Favorites.objects.filter(userid=user, titleid=title).exists()
         isPending = Pending.objects.filter(userid=user, titleid=title).exists()
+        isRated = Ratings.objects.filter(posterid=user, titleid=title).exists()
 
     # Se devuelve el diccionario
     return {
@@ -143,6 +145,7 @@ def get_title(title_id, user: Users = None):
         "lastComments": last_comments,
         "isFavorite": isFavorite,
         "isPending": isPending,
+        "isRated": isRated,
     }
 
 
