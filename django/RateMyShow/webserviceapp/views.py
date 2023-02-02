@@ -375,17 +375,10 @@ def sessions(r):
 
 def get_user_by_name(r, username):
     if r.method == "GET":
-        # Se intenta obtener el SessionToken de los headers
-        try:
-            sesion_token = r.headers["SessionToken"]
-        except Exception:
-            # sesion_token = ""
-            return JsonResponse({"message": "Unauthorized"}, status=401)
-
         # Intenta buscar el usuario en la BBDD
         try:
             user = Users.objects.get(username=username)
-        except Exception:
+        except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
         return JsonResponse(
