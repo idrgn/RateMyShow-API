@@ -1,3 +1,5 @@
+import json
+
 import requests
 from bs4 import BeautifulSoup
 from django.core.exceptions import ObjectDoesNotExist
@@ -88,30 +90,52 @@ def get_title(title_id, user: Users = None):
             "Upgrade-Insecure-Requests": "1",
         }
 
-        # Se intenta hacer la petición
         try:
+            # Se intenta hacer la petición
             request_response = requests.get(
                 f"http://www.imdb.com/title/{title_id}/", headers=headers
             )
+
+            # Se procesa la respuesta
             soup = BeautifulSoup(request_response.text, "html.parser")
 
-            # Se intenta obtener el cover
             try:
-                img_tag = soup.find("img", class_="ipc-image")
-                img_src = img_tag["src"]
-                title.cover = img_src
-                title.save()
+                # Opción 1: Se intentan obtener los datos dentro del tag script
+                script_tag = soup.find("script", attrs={"type": "application/ld+json"})
+
+                # Se obtienen los datos del json como un diccionario
+                data = json.loads(script_tag.text)
+
+                if "image" in data:
+                    title.cover = data["image"]
+                    title.save()
+
+                if "description" in data:
+                    title.description = data["description"]
+                    title.save()
+
             except Exception:
                 pass
 
-            # Se intenta obtener la descripción
-            try:
-                meta_description = soup.find("meta", attrs={"name": "description"})
-                content = meta_description["content"]
-                title.description = content
-                title.save()
-            except Exception:
-                pass
+            # Cover: opción 2
+            if title.cover == None:
+                try:
+                    img_tag = soup.find("img", class_="ipc-image")
+                    img_src = img_tag["src"]
+                    title.cover = img_src
+                    title.save()
+                except Exception:
+                    pass
+
+            # Descripción: opción 2
+            if title.description == None:
+                try:
+                    meta_description = soup.find("meta", attrs={"name": "description"})
+                    content = meta_description["content"]
+                    title.description = content
+                    title.save()
+                except Exception:
+                    pass
 
         except Exception:
             pass
