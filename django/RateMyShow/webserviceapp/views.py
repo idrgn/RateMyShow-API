@@ -742,11 +742,10 @@ def get_feed(r):
             "followedid"
         )
 
-        # Se añade el propio usuario
-        followers |= token.userid
-
         # Obtiene los ratings de los usuarios
-        ratings = Ratings.objects.filter(posterid__in=followers).order_by("-addeddate")
+        ratings = Ratings.objects.filter(
+            Q(posterid__in=followers) | Q(posterid=token.userid)
+        ).order_by("-addeddate")
 
         # Se obtiene el total de pendientes
         total = ratings.count()
