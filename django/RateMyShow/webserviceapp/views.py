@@ -742,6 +742,9 @@ def get_feed(r):
             "followedid"
         )
 
+        # Se añade el propio usuario
+        followers |= token.userid
+
         # Obtiene los ratings de los usuarios
         ratings = Ratings.objects.filter(posterid__in=followers).order_by("-addeddate")
 
