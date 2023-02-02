@@ -197,7 +197,7 @@ def get_new_token():
 
 def get_user(username, logged_user: Users = None):
     # Devuelve datos de un usuario
-    if not isinstance(username, Users):
+    if isinstance(username, Users):
         user = username
     else:
         try:
