@@ -117,10 +117,11 @@ def best_rated(r):
         # Se obtiene la página actual
         page = get_page(r)
 
-        # Se obtienen los resultados
+        # Se obtienen los títulos que tienen un rating
         titles = (
-            Titles.objects.prefetch_related("ratings_set")
-            .annotate(average_rating=Avg("ratings__rating"))
+            Ratings.objects.all()
+            .values("titleid")
+            .annotate(average_rating=Avg("rating"))
             .order_by("-average_rating")
         )
 
@@ -131,7 +132,7 @@ def best_rated(r):
         result_list = []
         current_user = get_token_user(r)
         for title in titles[amount_per_page * page : amount_per_page * (page + 1)]:
-            result_list.append(get_title(title.id, current_user))
+            result_list.append(get_title(title["titleid"], current_user))
 
         # Se devuelve la lista
         return JsonResponse(
