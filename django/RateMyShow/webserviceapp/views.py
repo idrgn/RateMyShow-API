@@ -905,6 +905,14 @@ def follow_user(r, username):
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
+        # Se comprueba que no es el propio usuario
+        if token.userid.pk == followed.pk:
+            return JsonResponse(
+                {"message": "Already following"},
+                json_dumps_params={"ensure_ascii": False},
+                status=409,
+            )
+
         # Se comprueba que la entrada no existe
         already_exists = Followers.objects.filter(
             followerid=token.userid, followedid=followed
