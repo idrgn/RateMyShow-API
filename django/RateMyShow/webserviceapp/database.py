@@ -130,6 +130,10 @@ def get_title(title_id, user: Users = None):
                     title.description = data["description"]
                     title.save()
 
+                if "alternateName" in data:
+                    title.translatedtitle = data["alternateName"]
+                    title.save()
+
             except Exception:
                 pass
 
@@ -172,6 +176,7 @@ def get_title(title_id, user: Users = None):
         "titleType": title_type,
         "primaryTitle": title.primarytitle,
         "originalTitle": title.originaltitle,
+        "translatedTitle": title.translatedtitle,
         "startYear": title.startyear,
         "endYear": title.endyear,
         "runtimeMinutes": title.runtimeminutes,
