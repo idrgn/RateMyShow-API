@@ -87,7 +87,9 @@ def title_search(r):
 
         # Se obtienen los resultados
         search = Titles.objects.filter(
-            Q(primarytitle__icontains=query) | Q(originaltitle__icontains=query)
+            Q(primarytitle__icontains=query)
+            | Q(originaltitle__icontains=query)
+            | Q(translatedtitle__icontains=query)
         ).order_by("-imdbratingcount", "-imdbrating", "-startyear")
 
         # Almacenar cantidad total
