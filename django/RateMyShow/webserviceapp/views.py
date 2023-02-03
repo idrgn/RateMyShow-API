@@ -542,9 +542,14 @@ def get_following_by_name(r, username):
 
         following_list = []
         current_user = get_token_user(r)
-        for user in following[amount_per_page * page : amount_per_page * (page + 1)]:
+        for followed in following[
+            amount_per_page * page : amount_per_page * (page + 1)
+        ]:
+            # Convierte el objeto dictionary a json
+            dictionary = get_user(followed.followedid, current_user)
+
             # Se añade dictionary
-            following_list.append(get_user(user, current_user))
+            following_list.append(dictionary)
 
         # Devuelve la lista de seguidos
         return JsonResponse(
