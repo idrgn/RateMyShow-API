@@ -91,7 +91,7 @@ class Participants(models.Model):
     titleid = models.ForeignKey(
         "Titles", models.DO_NOTHING, db_column="titleId"
     )  # Field name made lowercase.
-    personid = models.OneToOneField(
+    personid = models.ForeignKey(
         Names, models.DO_NOTHING, db_column="personId"
     )  # Field name made lowercase.
     category = models.ForeignKey(
