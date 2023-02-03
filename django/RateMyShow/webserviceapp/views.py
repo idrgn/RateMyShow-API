@@ -122,9 +122,7 @@ def best_rated(r):
             Ratings.objects.all()
             .values("titleid")
             .annotate(average_rating=Avg("rating"))
-            .order_by(
-                "-average_rating", "-imdbrating", "-imdbratingcount", "-startyear"
-            )
+            .order_by("-average_rating")
         )
 
         # Almacenar cantidad total
