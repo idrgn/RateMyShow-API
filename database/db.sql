@@ -40,6 +40,7 @@ CREATE TABLE `Titles` (
 	`imdbRatingCount` INT NOT NULL,
 	`cover` TEXT,
 	`description` TEXT,
+	`translatedTitle` VARCHAR(255),
 	PRIMARY KEY (`id`)
 );
 
