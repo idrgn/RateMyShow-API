@@ -172,6 +172,9 @@ class Titles(models.Model):
     )  # Field name made lowercase.
     cover = models.TextField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    translatedtitle = models.CharField(
+        db_column="translatedTitle", max_length=255, blank=True, null=True
+    )  # Field name made lowercase.
 
     class Meta:
         managed = False
