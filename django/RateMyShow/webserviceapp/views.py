@@ -989,8 +989,10 @@ def get_user_ratings(r, username):
         current_user = get_token_user(r)
         for rating in ratings[amount_per_page * page : amount_per_page * (page + 1)]:
             title = get_title(rating.titleid.pk, current_user)
-            # Se añade el rating del usuario
+            # Se añaden los datos del rating
             title["rating"] = rating.rating
+            title["comment"] = rating.comment
+            title["ratingDate"] = rating.addeddate
             # Se añade a la lista
             title_data.append(title)
 
