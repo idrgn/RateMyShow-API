@@ -1,10 +1,57 @@
 import csv
 import random
+import sys
 
 # Almacenamiento de datos de las tablas GenreTypes, TitleTypes, Genres y Titles de la BBDD
 # También alamacena un documento de texto con las IDs de los títulos disponibles en la BBDD
 
+maxInt = sys.maxsize
+
+while True:
+    try:
+        csv.field_size_limit(maxInt)
+        break
+    except OverflowError:
+        maxInt = int(maxInt / 10)
+
 title_ids = []
+extra_title_data = {}
+
+
+with open("title.akas.tsv", encoding="utf-8") as tsvfile:
+
+    reader = csv.reader(tsvfile, delimiter="\t")
+
+    test_count = 0
+    for row in reader:
+        if test_count != 0:
+            extra_title_data[row[0]] = {
+                "language": row[4],
+                "region": row[3],
+                "isOriginalTitle": row[7],
+                "imdbRating": 0,
+                "imdbRatingCount": 0,
+            }
+        test_count += 1
+
+
+with open("title.ratings.tsv", encoding="utf-8") as tsvfile:
+
+    reader = csv.reader(tsvfile, delimiter="\t")
+
+    for row in reader:
+        if row[0] in extra_title_data:
+            extra_title_data[row[0]]["imdbRating"] = row[1]
+            extra_title_data[row[0]]["imdbRatingCount"] = row[2]
+        else:
+            extra_title_data[row[0]] = {
+                "language": "\\N",
+                "region": "\\N",
+                "isOriginalTitle": 1,
+                "imdbRating": row[1],
+                "imdbRatingCount": row[2],
+            }
+
 
 with open("title.basics.tsv", encoding="utf-8") as tsvfile:
 
@@ -62,20 +109,6 @@ with open("filtered/TitleTypes.tsv", "wt", encoding="utf8") as out_file:
     for type in titleTypes:
         tsv_writer.writerow([titleTypes.index(type) + 1, type])
 
-language_list = ["es", "en", "zh", "hi", "fr", "ar", "bn", "ru", "pt", "id"]
-
-for _ in range(50):
-    language_list.append("en")
-
-for _ in range(10):
-    language_list.append("es")
-
-for _ in range(10):
-    language_list.append("zh")
-
-for _ in range(5):
-    language_list.append("fr")
-
 with open("filtered/Genres.tsv", "wt", encoding="utf8") as out_file_genre:
     tsv_writer_genre = csv.writer(out_file_genre, delimiter="\t", lineterminator="\n")
     count = 1
@@ -99,6 +132,10 @@ with open("filtered/Genres.tsv", "wt", encoding="utf8") as out_file_genre:
                 "endYear",
                 "runtimeMinutes",
                 "language",
+                "region",
+                "isOriginalTitle",
+                "imdbRating",
+                "imdbRatingCount",
             ]
         )
 
@@ -121,6 +158,15 @@ with open("filtered/Genres.tsv", "wt", encoding="utf8") as out_file_genre:
 
             title_ids.append(title["id"] + "\n")
 
+            if title["id"] not in extra_title_data:
+                extra_title_data[title["id"]] = {
+                    "language": "\\N",
+                    "region": "\\N",
+                    "isOriginalTitle": 1,
+                    "imdbRating": 0,
+                    "imdbRatingCount": 0,
+                }
+
             tsv_writer.writerow(
                 [
                     title["id"],
@@ -130,7 +176,11 @@ with open("filtered/Genres.tsv", "wt", encoding="utf8") as out_file_genre:
                     title["startYear"],
                     title["endYear"],
                     title["runtimeMinutes"],
-                    random.choice(language_list),
+                    extra_title_data[title["id"]]["language"],
+                    extra_title_data[title["id"]]["region"],
+                    extra_title_data[title["id"]]["isOriginalTitle"],
+                    extra_title_data[title["id"]]["imdbRating"],
+                    extra_title_data[title["id"]]["imdbRatingCount"],
                 ]
             )
 
