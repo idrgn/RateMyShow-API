@@ -88,7 +88,7 @@ def title_search(r):
         # Se obtienen los resultados
         search = Titles.objects.filter(
             Q(primarytitle__icontains=query) | Q(originaltitle__icontains=query)
-        ).order_by("-imdbrating", "-imdbratingcount", "-startyear")
+        ).order_by("-imdbratingcount", "-imdbrating", "-startyear")
 
         # Almacenar cantidad total
         total = search.count()
@@ -724,12 +724,12 @@ def latest(r):
 
         # Se obtienen las películas ordenadas por fecha.
         movies = Titles.objects.filter(titletype__in=movie_type).order_by(
-            "-startyear", "-imdbrating", "-imdbratingcount"
+            "-startyear", "-imdbratingcount", "-imdbrating"
         )
 
         # Se obtienen las series ordenadas por fecha.
         series = Titles.objects.filter(titletype__in=series_type).order_by(
-            "-startyear", "-imdbrating", "-imdbratingcount"
+            "-startyear", "-imdbratingcount", "-imdbrating"
         )
 
         # Almacenar cantidad total de películas
@@ -810,7 +810,7 @@ def recommendations(r):
 
             # Se obtienen los títulos ordenados
             title_list = Titles.objects.filter(pk__in=title_id_list).order_by(
-                "-imdbrating", "-imdbratingcount", "-startyear"
+                "-imdbratingcount", "-imdbrating", "-startyear"
             )
 
             # Se obtienen los datos de los títulos
