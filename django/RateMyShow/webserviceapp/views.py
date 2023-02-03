@@ -941,7 +941,7 @@ def follow_user(r, username):
         follower = Followers()
         follower.followedid = followed
         follower.followerid = token.userid
-        # follower.followeddate = datetime.datetime.now()
+        follower.addeddate = datetime.datetime.now()
         follower.save()
 
         # Respuesta
