@@ -88,7 +88,7 @@ def title_search(r):
         # Se obtienen los resultados
         search = Titles.objects.filter(
             Q(primarytitle__icontains=query) | Q(originaltitle__icontains=query)
-        )
+        ).order_by("-imdbrating", "-imdbratingcount", "-startyear")
 
         # Almacenar cantidad total
         total = search.count()
@@ -122,7 +122,9 @@ def best_rated(r):
             Ratings.objects.all()
             .values("titleid")
             .annotate(average_rating=Avg("rating"))
-            .order_by("-average_rating")
+            .order_by(
+                "-average_rating", "-imdbrating", "-imdbratingcount", "-startyear"
+            )
         )
 
         # Almacenar cantidad total
@@ -723,10 +725,14 @@ def latest(r):
         series_type = Titletypes.objects.filter(name__icontains="serie").values("id")
 
         # Se obtienen las películas ordenadas por fecha.
-        movies = Titles.objects.filter(titletype__in=movie_type).order_by("-startyear")
+        movies = Titles.objects.filter(titletype__in=movie_type).order_by(
+            "-startyear", "-imdbrating", "-imdbratingcount"
+        )
 
         # Se obtienen las series ordenadas por fecha.
-        series = Titles.objects.filter(titletype__in=series_type).order_by("-startyear")
+        series = Titles.objects.filter(titletype__in=series_type).order_by(
+            "-startyear", "-imdbrating", "-imdbratingcount"
+        )
 
         # Almacenar cantidad total de películas
         total_movies = movies.count()
@@ -779,6 +785,7 @@ def recommendations(r):
             token = Tokens.objects.get(token=session_token)
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
+
         # Se obtienen los favoritos del usuario
         favorites = Favorites.objects.filter(userid=token.userid).values("titleid")
 
@@ -800,7 +807,12 @@ def recommendations(r):
             title_data_list = []
 
             # Se obtienen los datos de 5 títulos
-            title_list = Genres.objects.filter(genreid=genre).values("titleid")
+            title_list = (
+                Genres.objects.filter(genreid=genre)
+                .order_by("-imdbrating", "-imdbratingcount", "-startyear")
+                .values("titleid")
+            )
+
             current_user = get_token_user(r)
             for title in title_list[0:5]:
                 title_data_list.append(get_title(title["titleid"], current_user))
