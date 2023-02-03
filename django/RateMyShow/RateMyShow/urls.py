@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from webserviceapp import hardcoded, views
+from webserviceapp import views
 
 """RateMyShow URL Configuration
 
