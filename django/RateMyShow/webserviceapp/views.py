@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from RateMyShow import settings
 
-from .database import get_new_token, get_title
+from .database import get_new_token, get_title, get_user
 from .models import (
     Avatars,
     Favorites,
@@ -271,16 +271,9 @@ def search_register_user(r):
 
         # Se almacenan los datos de cada título en una lista
         user_list = []
-
+        current_user = get_token_user(r)
         for user in search[amount_per_page * page : amount_per_page * (page + 1)]:
-            user_list.append(
-                {
-                    "username": user.username,
-                    "name": user.name,
-                    "surname": user.surname,
-                    "avatarId": user.avatarid.pk,
-                }
-            )
+            user_list.append(get_user(user, current_user))
 
         # Se devuelve la lista
         return JsonResponse(
@@ -374,12 +367,7 @@ def sessions(r):
 
         # Devuelve los datos del usuario
         return JsonResponse(
-            {
-                "username": token.userid.username,
-                "name": token.userid.name,
-                "surname": token.userid.surname,
-                "avatarId": token.userid.avatarid.pk,
-            },
+            get_user(token.userid, get_token_user(r)),
             json_dumps_params={"ensure_ascii": False},
             status=200,
         )
@@ -387,64 +375,14 @@ def sessions(r):
 
 def get_user_by_name(r, username):
     if r.method == "GET":
-        # Se intenta obtener el SessionToken de los headers
-        try:
-            sesion_token = r.headers["SessionToken"]
-        except Exception:
-            # sesion_token = ""
-            return JsonResponse({"message": "Unauthorized"}, status=401)
-
         # Intenta buscar el usuario en la BBDD
         try:
             user = Users.objects.get(username=username)
-        except Exception:
+        except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
-        # Se comprueba que es el propio usuario
-        user_matches = Tokens.objects.filter(
-            Q(token=sesion_token) & Q(userid=user.id)
-        ).exists()
-
-        # Se crea el diccionario
-        user_dict = {
-            "isOwnUser": user_matches,
-            "username": user.username,
-            "birthdate": user.birthdate,
-            "name": user.name,
-            "surname": user.surname,
-            "avatarId": user.avatarid.pk,
-            "registerDate": user.registerdate,
-        }
-
-        # Si es el propio usuario se añaden datos extra.
-        if user_matches:
-            user_dict["email"] = user.email
-            user_dict["phone"] = user.phone
-
-        # Número de seguidores y seguidos
-        followers = Followers.objects.filter(followedid=user).count()
-        user_dict["followers"] = followers
-
-        followed = Followers.objects.filter(followerid=user).count()
-        user_dict["following"] = followed
-
-        # Lista de favoritos
-        favorites = Favorites.objects.filter(userid=user).order_by("-addeddate")
-        favorites_list = []
-        current_user = get_token_user(r)
-        for favorite in favorites[0:5]:
-            favorites_list.append(get_title(favorite.titleid.pk, current_user))
-        user_dict["favorites"] = favorites_list
-
-        # Lista de pendientes
-        pendings = Pending.objects.filter(userid=user).order_by("-addeddate")
-        pending_list = []
-        for pending in pendings[0:5]:
-            pending_list.append(get_title(pending.titleid.pk, current_user))
-        user_dict["pending"] = pending_list
-
         return JsonResponse(
-            user_dict,
+            get_user(user, get_token_user(r), get_fav_pending=True),
             json_dumps_params={"ensure_ascii": False},
             status=200,
         )
@@ -561,16 +499,12 @@ def get_followers_by_name(r, username):
         total = followers.count()
 
         follower_list = []
+        current_user = get_token_user(r)
         for follower in followers[
             amount_per_page * page : amount_per_page * (page + 1)
         ]:
             # Convierte el objeto dictionary a json
-            dictionary = {
-                "username": follower.followerid.username,
-                "name": follower.followerid.name,
-                "surname": follower.followerid.surname,
-                "avatarId": follower.followerid.avatarid.pk,
-            }
+            dictionary = get_user(follower.followerid, current_user)
 
             # Se añade dictionary
             follower_list.append(dictionary)
@@ -607,14 +541,12 @@ def get_following_by_name(r, username):
         total = following.count()
 
         following_list = []
-        for user in following[amount_per_page * page : amount_per_page * (page + 1)]:
+        current_user = get_token_user(r)
+        for followed in following[
+            amount_per_page * page : amount_per_page * (page + 1)
+        ]:
             # Convierte el objeto dictionary a json
-            dictionary = {
-                "username": user.followedid.username,
-                "name": user.followedid.name,
-                "surname": user.followedid.surname,
-                "avatarId": user.followedid.avatarid.pk,
-            }
+            dictionary = get_user(followed.followedid, current_user)
 
             # Se añade dictionary
             following_list.append(dictionary)
@@ -758,13 +690,7 @@ def get_feed(r):
             entry["rating"] = rating.rating
             entry["comment"] = rating.comment
             entry["addeddate"] = rating.addeddate
-            entry["user"] = {
-                "username": rating.posterid.username,
-                "name": rating.posterid.name,
-                "surname": rating.posterid.surname,
-                "avatarId": rating.posterid.avatarid.pk,
-            }
-
+            entry["user"] = get_user(rating.posterid, current_user)
             feed_data.append(entry)
 
         # Devuelve la lista de pendientes
@@ -979,6 +905,26 @@ def follow_user(r, username):
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
+        # Se comprueba que no es el propio usuario
+        if token.userid.pk == followed.pk:
+            return JsonResponse(
+                {"message": "Already following"},
+                json_dumps_params={"ensure_ascii": False},
+                status=409,
+            )
+
+        # Se comprueba que la entrada no existe
+        already_exists = Followers.objects.filter(
+            followerid=token.userid, followedid=followed
+        ).exists()
+
+        if already_exists:
+            return JsonResponse(
+                {"message": "Already following"},
+                json_dumps_params={"ensure_ascii": False},
+                status=409,
+            )
+
         # Se añade a la BBDD
         follower = Followers()
         follower.followedid = followed
@@ -1008,13 +954,13 @@ def follow_user(r, username):
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
-        # Obtiene el objeto de la tabla Followers
-        try:
-            result = Followers.objects.get(followerid=token.userid, followedid=followed)
-        except ObjectDoesNotExist:
+        # Obtiene los objetos de la tabla Followers
+        result = Followers.objects.filter(followerid=token.userid, followedid=followed)
+
+        if not result.exists():
             return JsonResponse({"message": "Not found"}, status=404)
 
-        # Se elimina de la BBDD
+        # Se eliminan las entradas de la BBDD
         result.delete()
 
         # Respuesta
@@ -1043,8 +989,10 @@ def get_user_ratings(r, username):
         current_user = get_token_user(r)
         for rating in ratings[amount_per_page * page : amount_per_page * (page + 1)]:
             title = get_title(rating.titleid.pk, current_user)
-            # Se añade el rating del usuario
+            # Se añaden los datos del rating
             title["rating"] = rating.rating
+            title["comment"] = rating.comment
+            title["ratingDate"] = rating.addeddate
             # Se añade a la lista
             title_data.append(title)
 

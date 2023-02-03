@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from webserviceapp import hardcoded, views
+from webserviceapp import views
 
 """RateMyShow URL Configuration
 
@@ -36,7 +36,7 @@ urlpatterns = [
     path("users/<str:username>", views.get_user_by_name),
     path("users/<str:username>/followers", views.get_followers_by_name),
     path("users/<str:username>/following", views.get_following_by_name),
-    path("users/<str:username>/ratings", hardcoded.get_ratings_by_name),
+    path("users/<str:username>/ratings", views.get_user_ratings),
     path("users/<str:username>/follow", views.follow_user),
     # Títulos
     path("titles", views.title_search),
