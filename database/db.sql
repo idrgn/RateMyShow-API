@@ -34,6 +34,10 @@ CREATE TABLE `Titles` (
 	`endYear` INT NOT NULL,
 	`runtimeMinutes` INT NOT NULL,
 	`language` VARCHAR(255) NOT NULL,
+	`region` VARCHAR(255) NOT NULL,
+	`isOriginalTitle` BOOLEAN NOT NULL,
+	`imdbRating` FLOAT NOT NULL,
+	`imdbRatingCount` INT NOT NULL,
 	`cover` TEXT,
 	`description` TEXT,
 	PRIMARY KEY (`id`)
@@ -86,6 +90,7 @@ CREATE TABLE `Followers` (
 	`id` INT NOT NULL AUTO_INCREMENT,
 	`followerId` INT NOT NULL,
 	`followedId` INT NOT NULL,
+	`addedDate` DATETIME NOT NULL,
 	PRIMARY KEY (`id`)
 );
 
