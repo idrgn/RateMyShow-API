@@ -905,6 +905,18 @@ def follow_user(r, username):
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
+        # Se comprueba que la entrada no existe
+        already_exists = Followers.objects.filter(
+            followerid=token.userid, followedid=followed
+        ).exists()
+
+        if already_exists:
+            return JsonResponse(
+                {"message": "Already following"},
+                json_dumps_params={"ensure_ascii": False},
+                status=409,
+            )
+
         # Se añade a la BBDD
         follower = Followers()
         follower.followedid = followed
@@ -934,13 +946,13 @@ def follow_user(r, username):
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
-        # Obtiene el objeto de la tabla Followers
-        try:
-            result = Followers.objects.get(followerid=token.userid, followedid=followed)
-        except ObjectDoesNotExist:
+        # Obtiene los objetos de la tabla Followers
+        result = Followers.objects.filter(followerid=token.userid, followedid=followed)
+
+        if not result.exists():
             return JsonResponse({"message": "Not found"}, status=404)
 
-        # Se elimina de la BBDD
+        # Se eliminan las entradas de la BBDD
         result.delete()
 
         # Respuesta
