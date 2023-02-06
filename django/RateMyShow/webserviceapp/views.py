@@ -509,7 +509,7 @@ def get_followers_by_name(r, username):
         page = get_page(r)
 
         # Obtiene todos los seguidores del usuario
-        followers = Followers.objects.filter(followedid=user)
+        followers = Followers.objects.filter(followedid=user).order_by("-addeddate")
 
         # Se obtiene el total de seguidores
         total = followers.count()
@@ -551,7 +551,7 @@ def get_following_by_name(r, username):
         page = get_page(r)
 
         # Obtiene todos los usuarios a los que sigue el usuario
-        following = Followers.objects.filter(followerid=user)
+        following = Followers.objects.filter(followerid=user).order_by("-addeddate")
 
         # Se obtiene el total de seguidos
         total = following.count()
