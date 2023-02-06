@@ -42,6 +42,10 @@ def get_page(r):
         except Exception:
             page = 0
 
+    # Limitar valor mínimo
+    if page < 0:
+        page = 0
+
     return page
 
 
