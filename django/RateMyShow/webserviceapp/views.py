@@ -405,6 +405,13 @@ def favorite_by_id(r, title_id):
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
+        # Comprueba que el favorito no existe en la BBDD
+        favorite_exists = Favorites.objects.filter(
+            userid=token.userid, titleid=title_id
+        ).exists()
+        if favorite_exists:
+            return JsonResponse({"message": "Conflict"}, status=409)
+
         # Añade titulo a favoritos
         favorite = Favorites()
         favorite.userid = token.userid
@@ -428,7 +435,7 @@ def favorite_by_id(r, title_id):
 
         # Elimina titulo de favoritos
         try:
-            favorite = Favorites.objects.get(userid=token.userid, titleid=title_id)
+            favorite = Favorites.objects.filter(userid=token.userid, titleid=title_id)
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
