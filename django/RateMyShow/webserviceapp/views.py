@@ -458,6 +458,13 @@ def pending_by_id(r, title_id):
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
+        # Comprueba que el pendiente no existe en la BBDD
+        pending_exists = Pending.objects.filter(
+            userid=token.userid, titleid=title_id
+        ).exists()
+        if pending_exists:
+            return JsonResponse({"message": "Conflict"}, status=409)
+
         # Añade titulo a pendientes
         pending = Pending()
         pending.userid = token.userid
@@ -481,7 +488,7 @@ def pending_by_id(r, title_id):
 
         # Elimina titulo de pendientes
         try:
-            pending = Pending.objects.get(userid=token.userid, titleid=title_id)
+            pending = Pending.objects.filter(userid=token.userid, titleid=title_id)
         except ObjectDoesNotExist:
             return JsonResponse({"message": "Not found"}, status=404)
 
