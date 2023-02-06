@@ -839,7 +839,7 @@ def recommendations(r):
 
             # Se obtienen los datos de los títulos
             for title in title_list:
-                title_data_list.append(get_title(title.pk, current_user))
+                title_data_list.append(get_title(title["titleid"], current_user))
 
             # Se añade el género y los títulos a la respuesta.
             response.append(
