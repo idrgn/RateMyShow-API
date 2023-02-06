@@ -70,7 +70,7 @@ def get_most_common_elements(list):
     sorted_element_counts = sorted(
         element_counts.items(), key=lambda x: x[1], reverse=True
     )
-    return [item[0] for item in sorted_element_counts[:3]]
+    return [item[0] for item in sorted_element_counts]
 
 
 def title_search(r):
@@ -818,7 +818,7 @@ def recommendations(r):
 
         # Se obtienen títulos de cada género
         current_user = get_token_user(r)
-        for genre in top_genres:
+        for genre in top_genres[:3]:
             title_data_list = []
 
             # Se obtienen los títulos de un género
