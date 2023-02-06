@@ -833,7 +833,11 @@ def recommendations(r):
             # Se obtienen los títulos de un género
             title_list = (
                 Genres.objects.filter(genreid=genre)
-                .order_by("-titleid__imdbratingcount")
+                .order_by(
+                    "-titleid__imdbratingcount",
+                    "-titleid__imdbrating",
+                    "-titleid__startyear",
+                )
                 .values("titleid")[:5]
             )
 
