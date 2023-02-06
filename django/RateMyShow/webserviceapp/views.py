@@ -830,16 +830,17 @@ def recommendations(r):
         for genre in top_genres[:3]:
             title_data_list = []
 
-            # Se obtienen los títulos de un género
-            title_id_list = Genres.objects.filter(genreid=genre).values("titleid")
-
-            # Se obtienen los títulos ordenados
-            title_list = Titles.objects.filter(pk__in=title_id_list).order_by(
-                "-imdbratingcount", "-imdbrating", "-startyear"
+            # Se obtienen los títulos con el género
+            title_id_list = (
+                Titles.objects.filter(genres__genreid=genre)
+                .values_list("id", flat=True)
+                .order_by("-imdbratingcount", "-imdbrating", "-startyear")[:5]
             )
 
+            title_list = Titles.objects.filter(id__in=title_id_list)
+
             # Se obtienen los datos de los títulos
-            for title in title_list[0:5]:
+            for title in title_list:
                 title_data_list.append(get_title(title.pk, current_user))
 
             # Se añade el género y los títulos a la respuesta.
