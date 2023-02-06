@@ -3,7 +3,7 @@ import json
 import requests
 from bs4 import BeautifulSoup
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Avg
+from django.db.models import Avg, Sum
 from django.utils.crypto import get_random_string
 
 from .models import (
@@ -224,6 +224,17 @@ def get_user(username, logged_user: Users = None, get_fav_pending: bool = False)
     else:
         user_matches = False
 
+    # Se obtienen todos los ratings
+    user_ratings = Ratings.objects.filter(posterid=user)
+
+    # Se obtienen todos los favoritos
+    user_favorites = Favorites.objects.filter(userid=user).values("titleid")
+
+    # Se obtienen los minutos
+    total_minutes = Titles.objects.filter(pk__in=user_favorites).aggregate(
+        Sum("runtimeminutes")
+    )["runtimeminutes__sum"]
+
     # Se crea el diccionario de la respuesta
     result = {
         "isOwnUser": user_matches,
@@ -235,6 +246,8 @@ def get_user(username, logged_user: Users = None, get_fav_pending: bool = False)
         "registerDate": user.registerdate,
         "isFollowed": None,
         "isFollower": None,
+        "watchTime": total_minutes,
+        "totalRatings": user_ratings.count(),
     }
 
     if user_matches:
