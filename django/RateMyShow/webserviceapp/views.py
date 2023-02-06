@@ -82,22 +82,27 @@ def title_search(r):
         # Se obtienen los parámetros de URL
         query = r.GET.get("query", None)
 
-        # Si no se envía query, devuelve un 404
-        if query == None:
-            return JsonResponse({"message": "Not found"}, status=404)
-
         # Se obtiene la página actual
         page = get_page(r)
 
         # Se obtienen los resultados
-        search = Titles.objects.filter(
-            Q(primarytitle__icontains=query)
-            | Q(originaltitle__icontains=query)
-            | Q(translatedtitle__icontains=query)
-        ).order_by("-imdbratingcount", "-imdbrating", "-startyear")
+        if query == None:
+            search = Titles.objects.all().order_by(
+                "-imdbratingcount", "-imdbrating", "-startyear"
+            )
+        else:
+            search = Titles.objects.filter(
+                Q(primarytitle__icontains=query)
+                | Q(originaltitle__icontains=query)
+                | Q(translatedtitle__icontains=query)
+            ).order_by("-imdbratingcount", "-imdbrating", "-startyear")
 
         # Almacenar cantidad total
         total = search.count()
+
+        # Si no hay respuestas, devuelve un 404
+        if total == 0:
+            return JsonResponse({"message": "Not found"}, status=404)
 
         # Se almacenan los datos de cada título en una lista
         result_list = []
