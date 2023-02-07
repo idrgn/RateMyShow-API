@@ -1079,7 +1079,7 @@ def get_ratings(r, title_id):
         page = get_page(r)
 
         # Resultado
-        result = Ratings.objects.filter(titleid=title).sort_by("-addeddate")
+        result = Ratings.objects.filter(titleid=title).order_by("-addeddate")
 
         ratings = []
         # Se almacenan los ratings
