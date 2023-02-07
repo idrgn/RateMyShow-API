@@ -162,13 +162,21 @@ def get_title(title_id, user: Users = None):
 
     # Se comprueba si es favorito o pendiente
     if user == None:
-        isFavorite = None
-        isPending = None
-        isRated = None
+        is_favorite = None
+        is_pending = None
+        is_rated = None
+        own_rating = None
     else:
-        isFavorite = Favorites.objects.filter(userid=user, titleid=title).exists()
-        isPending = Pending.objects.filter(userid=user, titleid=title).exists()
-        isRated = Ratings.objects.filter(posterid=user, titleid=title).exists()
+        is_favorite = Favorites.objects.filter(userid=user, titleid=title).exists()
+        is_pending = Pending.objects.filter(userid=user, titleid=title).exists()
+        is_rated = Ratings.objects.filter(posterid=user, titleid=title).exists()
+        if is_rated:
+            user_rating = Ratings.objects.filter(posterid=user, titleid=title)[0]
+            own_rating = {
+                "comment": user_rating.comment,
+                "addedDate": user_rating.addeddate,
+                "rating": user_rating.rating,
+            }
 
     # Se devuelve el diccionario
     return {
@@ -188,9 +196,10 @@ def get_title(title_id, user: Users = None):
         "rating": rating_average["rating__avg"],
         "totalRatings": rating_count,
         "lastComments": last_comments,
-        "isFavorite": isFavorite,
-        "isPending": isPending,
-        "isRated": isRated,
+        "isFavorite": is_favorite,
+        "isPending": is_pending,
+        "isRated": is_rated,
+        "ownRating": own_rating,
     }
 
 
