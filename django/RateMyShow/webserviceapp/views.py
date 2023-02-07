@@ -1089,10 +1089,8 @@ def get_ratings(r, title_id):
                     "comment": rating.comment,
                     "rating": rating.rating,
                     "addedDate": rating.addeddate,
-                    "poster": {
-                        "username": rating.posterid.username,
-                        "avatarId": rating.posterid.avatarid.pk,
-                    },
+                    "username": rating.posterid.username,
+                    "avatarId": rating.posterid.avatarid.pk,
                 }
             )
 

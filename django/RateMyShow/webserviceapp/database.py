@@ -176,6 +176,8 @@ def get_title(title_id, user: Users = None):
                 "comment": user_rating.comment,
                 "addedDate": user_rating.addeddate,
                 "rating": user_rating.rating,
+                "username": user_rating.posterid.username,
+                "avatarid": user_rating.posterid.avatarid.pk,
             }
         else:
             own_rating = None
