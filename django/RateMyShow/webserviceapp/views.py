@@ -1091,7 +1091,7 @@ def get_ratings(r, title_id):
                     "addedDate": rating.addeddate,
                     "poster": {
                         "username": rating.posterid.username,
-                        "avatarId": rating.posterid.avatarId,
+                        "avatarId": rating.posterid.avatarid,
                     },
                 }
             )
