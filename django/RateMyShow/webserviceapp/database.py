@@ -171,7 +171,7 @@ def get_title(title_id, user: Users = None):
         is_pending = Pending.objects.filter(userid=user, titleid=title).exists()
         is_rated = Ratings.objects.filter(posterid=user, titleid=title).exists()
         if is_rated:
-            user_rating = Ratings.objects.filter(posterid=user, titleid=title)[0]
+            user_rating = Ratings.objects.get(posterid=user, titleid=title)
             own_rating = {
                 "comment": user_rating.comment,
                 "addedDate": user_rating.addeddate,
