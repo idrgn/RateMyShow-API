@@ -1081,6 +1081,9 @@ def get_ratings(r, title_id):
         # Resultado
         result = Ratings.objects.filter(titleid=title).order_by("-addeddate")
 
+        # Total
+        total = result.count()
+
         ratings = []
         # Se almacenan los ratings
         for rating in result[amount_per_page * page : amount_per_page * (page + 1)]:
@@ -1095,7 +1098,12 @@ def get_ratings(r, title_id):
             )
 
         return JsonResponse(
-            ratings,
+            {
+                "total": total,
+                "pages": int(math.ceil(total / amount_per_page)),
+                "current": page,
+                "ratings": ratings,
+            },
             json_dumps_params={"ensure_ascii": False},
             status=200,
             safe=False,
