@@ -177,6 +177,8 @@ def get_title(title_id, user: Users = None):
                 "addedDate": user_rating.addeddate,
                 "rating": user_rating.rating,
             }
+        else:
+            own_rating = None
 
     # Se devuelve el diccionario
     return {
