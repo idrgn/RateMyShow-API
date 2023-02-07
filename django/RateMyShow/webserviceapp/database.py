@@ -69,7 +69,7 @@ def get_title(title_id, user: Users = None):
 
     # Se almacenan los últimos 10 comentarios
     last_comments = []
-    for rating in all_ratings.order_by("-addeddate")[0:10]:
+    for rating in all_ratings.order_by("-addeddate")[0:5]:
         last_comments.append(
             {
                 "username": rating.posterid.username,
