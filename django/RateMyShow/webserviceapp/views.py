@@ -115,7 +115,7 @@ def title_search(r):
             {
                 "total": total,
                 "pages": int(math.ceil(total / amount_per_page)),
-                "currentPage": page,
+                "current": page,
                 "result": result_list,
             },
             json_dumps_params={"ensure_ascii": False},
@@ -150,7 +150,7 @@ def best_rated(r):
             {
                 "total": total,
                 "pages": int(math.ceil(total / amount_per_page)),
-                "currentPage": page,
+                "current": page,
                 "result": result_list,
             },
             json_dumps_params={"ensure_ascii": False},
@@ -291,7 +291,7 @@ def search_register_user(r):
             {
                 "total": total,
                 "pages": int(math.ceil(total / amount_per_page)),
-                "currentPage": page,
+                "current": page,
                 "users": user_list,
             },
             json_dumps_params={"ensure_ascii": False},
@@ -539,7 +539,7 @@ def get_followers_by_name(r, username):
             {
                 "total": total,
                 "pages": int(math.ceil(total / amount_per_page)),
-                "currentPage": page,
+                "current": page,
                 "followers": follower_list,
             },
             json_dumps_params={"ensure_ascii": False},
@@ -581,7 +581,7 @@ def get_following_by_name(r, username):
             {
                 "total": total,
                 "pages": int(math.ceil(total / amount_per_page)),
-                "currentPage": page,
+                "current": page,
                 "following": following_list,
             },
             json_dumps_params={"ensure_ascii": False},
@@ -626,7 +626,7 @@ def get_favorites(r):
             {
                 "total": total,
                 "pages": int(math.ceil(total / amount_per_page)),
-                "currentPage": page,
+                "current": page,
                 "favorites": favorites_list,
             },
             json_dumps_params={"ensure_ascii": False},
@@ -669,7 +669,7 @@ def get_pending(r):
             {
                 "total": total,
                 "pages": int(math.ceil(total / amount_per_page)),
-                "currentPage": page,
+                "current": page,
                 "pending": pending_list,
             },
             json_dumps_params={"ensure_ascii": False},
@@ -723,7 +723,7 @@ def get_feed(r):
             {
                 "total": total,
                 "pages": int(math.ceil(total / amount_per_page)),
-                "currentPage": page,
+                "current": page,
                 "feed": feed_data,
             },
             json_dumps_params={"ensure_ascii": False},
@@ -780,13 +780,13 @@ def latest(r):
                 "movies": {
                     "total": total_movies,
                     "pages": int(math.ceil(total_movies / amount_per_page)),
-                    "currentPage": page,
+                    "current": page,
                     "result": result_list_movies,
                 },
                 "series": {
                     "total": total_series,
                     "pages": int(math.ceil(total_series / amount_per_page)),
-                    "currentPage": page,
+                    "current": page,
                     "result": result_list_series,
                 },
             },
@@ -1041,7 +1041,7 @@ def get_user_ratings(r, username):
             {
                 "total": total,
                 "pages": int(math.ceil(total / amount_per_page)),
-                "currentPage": page,
+                "current": page,
                 "ratings": title_data,
             },
             json_dumps_params={"ensure_ascii": False},
@@ -1101,7 +1101,7 @@ def get_ratings(r, title_id):
             {
                 "total": total,
                 "pages": int(math.ceil(total / amount_per_page)),
-                "currentPage": page,
+                "current": page,
                 "ratings": ratings,
             },
             json_dumps_params={"ensure_ascii": False},
