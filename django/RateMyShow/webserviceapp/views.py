@@ -1065,3 +1065,40 @@ def get_image(r, name):
         return JsonResponse({"message": "Not found"}, status=404)
 
     return HttpResponse(image_data, content_type="image/png")
+
+
+def get_ratings(r, title_id):
+    if r.method == "GET":
+        # Intenta buscar el título en la BBDD
+        try:
+            title = Titles.objects.get(pk=title_id)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+
+        # Se obtiene la página actual
+        page = get_page(r)
+
+        # Resultado
+        result = Ratings.objects.filter(titleid=title).sort_by("-addeddate")
+
+        ratings = []
+        # Se almacenan los ratings
+        for rating in result[amount_per_page * page : amount_per_page * (page + 1)]:
+            ratings.append(
+                {
+                    "comment": rating.comment,
+                    "rating": rating.rating,
+                    "addedDate": rating.addeddate,
+                    "poster": {
+                        "username": rating.posterid.username,
+                        "avatarId": rating.posterid.avatarId,
+                    },
+                }
+            )
+
+        return JsonResponse(
+            ratings,
+            json_dumps_params={"ensure_ascii": False},
+            status=200,
+            safe=False,
+        )
