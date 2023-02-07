@@ -714,7 +714,7 @@ def get_feed(r):
             entry = get_title(rating.titleid.pk, current_user)
             entry["rating"] = rating.rating
             entry["comment"] = rating.comment
-            entry["addeddate"] = rating.addeddate
+            entry["addedDate"] = rating.addeddate
             entry["user"] = get_user(rating.posterid, current_user)
             feed_data.append(entry)
 
