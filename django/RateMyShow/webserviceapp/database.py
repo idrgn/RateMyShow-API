@@ -1,3 +1,4 @@
+import hashlib
 import json
 
 import requests
@@ -182,6 +183,13 @@ def get_title(title_id, user: Users = None):
         else:
             own_rating = None
 
+    # Se comprueba que la descripción no sea el texto por defecto
+    hashed_description = hashlib.md5(title.description.encode("utf-8")).hexdigest()
+    if hashed_description == "03f874c3ad85cc7289dfd9e67009ff6e":
+        description = "Sin datos"
+    else:
+        description = title.description
+
     # Se devuelve el diccionario
     return {
         "id": title.pk,
@@ -194,7 +202,7 @@ def get_title(title_id, user: Users = None):
         "runtimeMinutes": title.runtimeminutes,
         "language": title.language.rstrip(),
         "cover": title.cover,
-        "description": title.description,
+        "description": description,
         "genres": genre_list,
         "crew": participant_list,
         "rating": rating_average["rating__avg"],
