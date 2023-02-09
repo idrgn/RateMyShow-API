@@ -134,7 +134,7 @@ def best_rated(r):
             .values("titleid")
             .annotate(average_rating=Avg("rating"))
             .annotate(rating_count=Count("rating"))
-            .order_by("-average_rating", "-rating-count")
+            .order_by("-average_rating", "-rating_count")
         )
 
         # Almacenar cantidad total
