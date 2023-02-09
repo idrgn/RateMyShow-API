@@ -4,7 +4,7 @@ import math
 from random import choice
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Avg, Q
+from django.db.models import Avg, Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -133,7 +133,8 @@ def best_rated(r):
             Ratings.objects.all()
             .values("titleid")
             .annotate(average_rating=Avg("rating"))
-            .order_by("-average_rating")
+            .annotate(rating_count=Count("rating"))
+            .order_by("-average_rating", "-rating-count")
         )
 
         # Almacenar cantidad total
