@@ -271,9 +271,11 @@ def search_register_user(r):
 
         # Se obtienen los resultados
         if query:
-            search = Users.objects.filter(Q(username__icontains=query)).order_by(
-                "-registerdate"
-            )
+            search = Users.objects.filter(
+                Q(username__icontains=query)
+                | Q(name__icontains=query)
+                | Q(surname__icontains=query)
+            ).order_by("-registerdate")
         else:
             search = Users.objects.all().order_by("-registerdate")
 
@@ -870,9 +872,9 @@ def rating(r, title_id):
 
             # Se comprueba que los datos están dentro del límite
             if data["rating"] > 5.0:
-                rating = 5.0
-            elif data["rating"] < 0.0:
-                rating = 0.0
+                data["rating"] = 5.0
+            elif data["rating"] < 0.5:
+                data["rating"] = 0.5
 
             # Si el comentario no es un string, se añade un String vacío
             if not isinstance(data["comment"], str):
